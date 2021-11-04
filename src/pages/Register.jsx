@@ -1,5 +1,12 @@
 import styled from "styled-components";
 import { mobile } from "../responsive";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+
+} from "react-router-dom";
 
 const Container = styled.div`
   width: 100vw;
@@ -8,7 +15,7 @@ const Container = styled.div`
       rgba(255, 255, 255, 0.5),
       rgba(255, 255, 255, 0.5)
     ),
-    url("https://images.pexels.com/photos/6984661/pexels-photo-6984661.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940")
+    url("https://images.unsplash.com/photo-1600953983491-ddd1ddf2b9e4?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1669&q=80")
       center;
   background-size: cover;
   display: flex;
@@ -31,6 +38,9 @@ const Title = styled.h1`
 const Form = styled.form`
   display: flex;
   flex-wrap: wrap;
+ 
+  align-items: center;
+  justify-content: center;
 `;
 
 const Input = styled.input`
@@ -47,12 +57,33 @@ const Agreement = styled.span`
 
 const Button = styled.button`
   width: 40%;
-  border: none;
-  padding: 15px 20px;
-  background-color: teal;
-  color: white;
+  padding: 15px 25px;
+  background-color: red;
+  color:white;
+  border-radius:20px;
+  cursor: pointer;
+  border:none
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+&:hover {
+  background-color: white;
+  transition: background-color 0.8s ease;
+  
+color:red;
+`;
+
+
+
+const List = styled.a`
+  margin: 5px 0px;
+  font-size: 12px;
+  text-decoration: underline;
   cursor: pointer;
 `;
+
+
 
 const Register = () => {
   return (
@@ -70,6 +101,7 @@ const Register = () => {
             By creating an account, I consent to the processing of my personal
             data in accordance with the <b>PRIVACY POLICY</b>
           </Agreement>
+          <Link to="/login" className="link"> <List> ALREADY HAVE A ACCOUNT</List></Link>
           <Button>CREATE</Button>
         </Form>
       </Wrapper>

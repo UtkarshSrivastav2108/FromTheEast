@@ -1,5 +1,11 @@
 import styled from "styled-components";
-import {mobile} from "../responsive";
+import { mobile } from "../responsive";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 const Container = styled.div`
   width: 100vw;
@@ -8,7 +14,7 @@ const Container = styled.div`
       rgba(255, 255, 255, 0.5),
       rgba(255, 255, 255, 0.5)
     ),
-    url("https://images.pexels.com/photos/6984650/pexels-photo-6984650.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940")
+    url("https://images.unsplash.com/photo-1604830250692-54c16c369b06?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80")
       center;
   background-size: cover;
   display: flex;
@@ -43,14 +49,25 @@ const Input = styled.input`
 const Button = styled.button`
   width: 40%;
   border: none;
-  padding: 15px 20px;
-  background-color: teal;
-  color: white;
-  cursor: pointer;
-  margin-bottom: 10px;
+  padding: 15px 25px;
+  background-color: red;
+color:white;
+border-radius:20px;
+cursor: pointer;
+border:none
+
+display: flex;
+align-items: center;
+justify-content: center;
+
+&:hover {
+  background-color: white;
+  transition: background-color 0.8s ease;
+  
+color:red;
 `;
 
-const Link = styled.a`
+const List = styled.a`
   margin: 5px 0px;
   font-size: 12px;
   text-decoration: underline;
@@ -66,8 +83,8 @@ const Login = () => {
           <Input placeholder="username" />
           <Input placeholder="password" />
           <Button>LOGIN</Button>
-          <Link>DO NOT YOU REMEMBER THE PASSWORD?</Link>
-          <Link>CREATE A NEW ACCOUNT</Link>
+          <Link to="/" className="link"><List >DO NOT YOU REMEMBER THE PASSWORD?</List></Link>
+          <Link to="/register" className="link"> <List> CREATE A NEW ACCOUNT</List></Link>
         </Form>
       </Wrapper>
     </Container>
