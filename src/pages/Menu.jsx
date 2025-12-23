@@ -210,13 +210,15 @@ const Menu = () => {
 
   /**
    * Get quantity of item in cart
-   * @param {number} itemId - Item ID
+   * @param {string|number} itemId - Item ID
    * @returns {number} Quantity in cart
    */
   const getItemQuantity = (itemId) => {
+    if (!itemId) return 0;
+    const searchId = itemId.toString();
     const cartItem = cartItems.find((item) => {
-      const productId = item.product?._id || item.product || item.id;
-      return productId === itemId || item.id === itemId;
+      const itemProductId = item.product?._id?.toString() || item.product?.toString() || item.product?.id?.toString() || item.id?.toString();
+      return itemProductId === searchId;
     });
     return cartItem ? cartItem.quantity : 0;
   };
@@ -246,14 +248,16 @@ const Menu = () => {
    */
   const handleQuantityChange = async (item, delta) => {
     try {
-      const currentQuantity = getItemQuantity(item.id);
+      const itemId = item._id || item.id;
+      const currentQuantity = getItemQuantity(itemId);
       const newQuantity = currentQuantity + delta;
       
       if (newQuantity <= 0) {
         // Find the cart item ID to remove
         const cartItem = cartItems.find((cartItem) => {
-          const productId = cartItem.product?._id || cartItem.product || cartItem.id;
-          return productId === item.id || cartItem.id === item.id || String(productId) === String(item.id);
+          const itemProductId = cartItem.product?._id?.toString() || cartItem.product?.toString() || cartItem.product?.id?.toString();
+          const searchId = itemId?.toString();
+          return itemProductId === searchId;
         });
         if (cartItem && removeItem) {
           await removeItem(cartItem._id || cartItem.id);
@@ -264,8 +268,9 @@ const Menu = () => {
       
       // Find the cart item to update
       const cartItem = cartItems.find((cartItem) => {
-        const productId = cartItem.product?._id || cartItem.product || cartItem.id;
-        return productId === item.id || cartItem.id === item.id || String(productId) === String(item.id);
+        const itemProductId = cartItem.product?._id?.toString() || cartItem.product?.toString() || cartItem.product?.id?.toString();
+        const searchId = itemId?.toString();
+        return itemProductId === searchId;
       });
       
       if (cartItem) {
@@ -956,12 +961,13 @@ const Menu = () => {
                     }}
                   >
                     {items.map((item) => {
-                      const quantity = getItemQuantity(item.id);
+                      const itemId = item._id || item.id;
+                      const quantity = getItemQuantity(itemId);
                       const hasQuantity = quantity > 0;
 
                       return (
                         <Paper
-                          key={item.id}
+                          key={item._id || item.id}
                           elevation={0}
                           sx={{
                             borderRadius: 1.5,
