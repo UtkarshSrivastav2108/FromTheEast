@@ -15,6 +15,7 @@ import {
 import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useAuth as useAuthHook } from '../hooks/useAuth';
+import { useSnackbar } from '../context/SnackbarContext';
 
 /**
  * Login Page Component
@@ -27,6 +28,7 @@ const Login = () => {
   const location = useLocation();
   const { login: loginContext } = useAuth();
   const { login: loginAPI, loading } = useAuthHook();
+  const { showSuccess, showError } = useSnackbar();
   
   const [formData, setFormData] = useState({
     username: '',
@@ -71,11 +73,16 @@ const Login = () => {
       // Update context with user data
       loginContext(user, token);
       
+      // Show success message
+      showSuccess('Login successful! Welcome back.');
+      
       // Redirect to the page user was trying to access, or home
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      const errorMessage = err.message || 'Login failed. Please try again.';
+      setError(errorMessage);
+      showError(errorMessage);
     }
   };
 

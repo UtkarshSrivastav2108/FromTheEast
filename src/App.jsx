@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { OrdersProvider } from './context/OrdersContext';
+import { SnackbarProvider } from './context/SnackbarContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
@@ -27,11 +28,12 @@ import Reservation from './pages/Reservation';
  */
 function App() {
   return (
-    <AuthProvider>
-    <CartProvider>
-      <WishlistProvider>
-        <OrdersProvider>
-          <Router>
+    <SnackbarProvider>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <OrdersProvider>
+              <Router>
             <Box
               sx={{
                 display: 'flex',
@@ -94,11 +96,12 @@ function App() {
                   />
               </Routes>
             </Box>
-          </Router>
-        </OrdersProvider>
-      </WishlistProvider>
-    </CartProvider>
-    </AuthProvider>
+              </Router>
+            </OrdersProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </SnackbarProvider>
   );
 }
 

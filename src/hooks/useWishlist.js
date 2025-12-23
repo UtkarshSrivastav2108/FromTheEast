@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import wishlistService from '../services/wishlistService';
+import { useSnackbar } from '../context/SnackbarContext';
 
 /**
  * useWishlist Hook
@@ -10,6 +11,7 @@ export const useWishlist = () => {
   const [wishlist, setWishlist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showSuccess, showError } = useSnackbar();
 
   const fetchWishlist = useCallback(async () => {
     try {
@@ -38,12 +40,14 @@ export const useWishlist = () => {
       setError(null);
       const data = await wishlistService.addToWishlist(itemData);
       setWishlist(data);
+      showSuccess('Item added to wishlist!');
     } catch (err) {
       const errorMessage = err.message || 'Failed to add item to wishlist';
       setError(new Error(errorMessage));
+      showError(errorMessage);
       throw err;
     }
-  }, []);
+  }, [showSuccess, showError]);
 
   /**
    * Remove item from wishlist
@@ -54,12 +58,14 @@ export const useWishlist = () => {
       setError(null);
       const data = await wishlistService.removeFromWishlist(itemId);
       setWishlist(data);
+      showSuccess('Item removed from wishlist');
     } catch (err) {
       const errorMessage = err.message || 'Failed to remove item from wishlist';
       setError(new Error(errorMessage));
+      showError(errorMessage);
       throw err;
     }
-  }, []);
+  }, [showSuccess, showError]);
 
   /**
    * Clear wishlist
@@ -69,12 +75,14 @@ export const useWishlist = () => {
       setError(null);
       const data = await wishlistService.clearWishlist();
       setWishlist(data);
+      showSuccess('Wishlist cleared successfully');
     } catch (err) {
       const errorMessage = err.message || 'Failed to clear wishlist';
       setError(new Error(errorMessage));
+      showError(errorMessage);
       throw err;
     }
-  }, []);
+  }, [showSuccess, showError]);
 
   /**
    * Check if product is in wishlist

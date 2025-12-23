@@ -11,16 +11,17 @@ import {
   useMediaQuery,
   alpha,
   Chip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
-import { Add, Remove, ArrowBack } from '@mui/icons-material';
+import { Add, Remove, ArrowBack, Favorite, FavoriteBorder } from '@mui/icons-material';
 import Announcement from '../components/Announcement';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import Newsletter from '../components/Newsletter';
-import { menuItems, menuCategories } from '../data';
+import { useProduct } from '../hooks/useProducts';
 import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
-import { Favorite, FavoriteBorder } from '@mui/icons-material';
+import { useWishlist } from '../hooks/useWishlist';
 
 /**
  * Product Detail Page Component
@@ -31,33 +32,26 @@ const Product = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, updateQuantity, cartItems } = useCart();
+  const { product, loading, error } = useProduct(id);
+  const { cart, addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
 
-  // Find product from all menu items
-  const product = useMemo(() => {
-    if (!id) return null;
-    
-    const productId = parseInt(id, 10);
-    for (const category of menuCategories) {
-      const items = menuItems[category.id] || [];
-      const found = items.find((item) => item.id === productId);
-      if (found) {
-        return found;
-      }
-    }
-    return null;
-  }, [id]);
+  // Extract cart items
+  const cartItems = cart?.items || [];
 
   // Get quantity in cart
   const cartQuantity = useMemo(() => {
     if (!product) return 0;
-    const cartItem = cartItems.find((item) => item.id === product.id);
+    const productId = product._id || product.id;
+    const cartItem = cartItems.find((item) => {
+      const itemProductId = item.product?._id?.toString() || item.product?.toString() || item.product?.id?.toString();
+      return itemProductId === productId?.toString();
+    });
     return cartItem ? cartItem.quantity : 0;
   }, [product, cartItems]);
 
-  const isWishlisted = product ? isInWishlist(product.id) : false;
+  const isWishlisted = product ? isInWishlist(product._id || product.id) : false;
 
   /**
    * Handle quantity change
@@ -70,38 +64,45 @@ const Product = () => {
   /**
    * Handle add to cart
    */
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
     
-    // Add the specified quantity
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product);
+    try {
+      const productId = product._id || product.id;
+      await addToCart({ productId, quantity });
+      setQuantity(1);
+    } catch (err) {
+      // Error handled in hook
     }
-    setQuantity(1);
   };
 
   /**
    * Handle wishlist toggle
    */
-  const handleWishlistToggle = () => {
+  const handleWishlistToggle = async () => {
     if (!product) return;
     
-    if (isWishlisted) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist({
-        id: product.id,
-        name: product.name,
-        desc: product.description,
-        price: product.price,
-        img: product.image,
-        isVeg: product.isVeg,
-        badges: product.badges,
-      });
+    try {
+      const productId = product._id || product.id;
+      if (isWishlisted) {
+        await removeFromWishlist(productId);
+      } else {
+        await addToWishlist({ productId });
+      }
+    } catch (err) {
+      // Error handled in hook
     }
   };
 
-  if (!product) {
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !product) {
     return (
       <Box
         sx={{
@@ -117,7 +118,7 @@ const Product = () => {
         <Box sx={{ flex: 1 }}>
           <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
             <Typography variant="h4" sx={{ mb: 2 }}>
-              Product not found
+              {error ? error.message : 'Product not found'}
             </Typography>
             <Button variant="contained" onClick={() => navigate('/menu')}>
               Back to Menu

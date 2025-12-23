@@ -18,6 +18,13 @@ router.get('/', productController.getAllProducts);
 router.get('/featured', productController.getFeaturedProducts);
 
 /**
+ * @route   GET /api/products/categories
+ * @desc    Get all categories with metadata
+ * @access  Public
+ */
+router.get('/categories', productController.getCategories);
+
+/**
  * @route   GET /api/products/category/:category
  * @desc    Get products by category
  * @access  Public

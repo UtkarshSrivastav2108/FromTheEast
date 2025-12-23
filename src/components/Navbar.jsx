@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -34,9 +34,17 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
-  const { getItemCount } = useCart();
+  const { cart } = useCart();
   const { isAuthenticated, user, logout } = useAuth();
-  const cartItemCount = getItemCount();
+  
+  // Calculate cart item count from cart items
+  const cartItemCount = useMemo(() => {
+    if (!cart || !cart.items || !Array.isArray(cart.items)) return 0;
+    return cart.items.reduce((total, item) => {
+      const quantity = item.quantity || 1;
+      return total + quantity;
+    }, 0);
+  }, [cart]);
 
   useEffect(() => {
     const handleScroll = () => {

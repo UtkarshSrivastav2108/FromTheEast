@@ -14,6 +14,9 @@ const wishlistRoutes = require('./routes/wishlist');
 const orderRoutes = require('./routes/orders');
 const profileRoutes = require('./routes/profile');
 const reservationRoutes = require('./routes/reservations');
+const couponRoutes = require('./routes/coupons');
+const sliderRoutes = require('./routes/sliders');
+const announcementRoutes = require('./routes/announcements');
 
 // Initialize Express app
 const app = express();
@@ -43,6 +46,9 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/sliders', sliderRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // 404 handler
 app.use((req, res) => {

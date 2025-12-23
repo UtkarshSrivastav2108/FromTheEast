@@ -21,6 +21,7 @@ import Announcement from '../components/Announcement';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useReservations } from '../hooks/useReservations';
+import { useSnackbar } from '../context/SnackbarContext';
 import { CircularProgress, Alert } from '@mui/material';
 
 /**
@@ -32,6 +33,7 @@ const Reservation = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const { createReservation, loading } = useReservations();
+  const { showSuccess, showError } = useSnackbar();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -84,7 +86,8 @@ const Reservation = () => {
         time: formData.time,
       });
       
-      setSuccess('Reservation created successfully!');
+      showSuccess('Reservation created successfully! We look forward to serving you.');
+      
       // Reset form
       setFormData({
         name: '',
@@ -100,7 +103,9 @@ const Reservation = () => {
         navigate('/');
       }, 2000);
     } catch (err) {
-      setError(err.message || 'Failed to create reservation. Please try again.');
+      const errorMessage = err.message || 'Failed to create reservation. Please try again.';
+      setError(errorMessage);
+      showError(errorMessage);
     }
   };
 

@@ -17,10 +17,10 @@ import { IconButton } from '@mui/material';
 import Navbar from '../components/Navbar';
 import Announcement from '../components/Announcement';
 import Footer from '../components/Footer';
-import { featuredDishes } from '../data';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useProducts } from '../hooks/useProducts';
+import { CircularProgress, Alert } from '@mui/material';
 
 /**
  * Home Page Component
@@ -32,10 +32,10 @@ const Home = () => {
   const navigate = useNavigate();
   const { addToCart, cart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { products: featuredProducts, loading: productsLoading } = useProducts({ featured: true });
+  const { products: featuredProducts, loading: productsLoading, error: productsError } = useProducts({ featured: true });
   
-  // Use API products if available, otherwise fallback to static data
-  const displayProducts = featuredProducts.length > 0 ? featuredProducts : featuredDishes;
+  // Use API products
+  const displayProducts = featuredProducts || [];
 
   /**
    * Handle add to cart from featured dishes
@@ -58,13 +58,31 @@ const Home = () => {
    * @returns {number} Quantity in cart
    */
   const getItemQuantity = (itemId) => {
+    if (!itemId) return 0;
     const cartItems = cart?.items || [];
+    const searchId = itemId.toString();
     const cartItem = cartItems.find((item) => {
-      const itemProductId = item.product?._id || item.product || item.id;
-      return itemProductId === itemId || itemProductId === itemId.toString();
+      const itemProductId = item.product?._id?.toString() || item.product?.toString() || item.product?.id?.toString();
+      return itemProductId === searchId;
     });
     return cartItem ? cartItem.quantity : 0;
   };
+
+  if (productsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (productsError) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Alert severity="error">{productsError.message}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box

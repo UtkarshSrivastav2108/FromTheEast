@@ -16,6 +16,7 @@ import {
 import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useAuth as useAuthHook } from '../hooks/useAuth';
+import { useSnackbar } from '../context/SnackbarContext';
 
 /**
  * Register Page Component
@@ -27,6 +28,7 @@ const Register = () => {
   const navigate = useNavigate();
   const { login: loginContext } = useAuth();
   const { register, loading } = useAuthHook();
+  const { showSuccess, showError } = useSnackbar();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -89,10 +91,15 @@ const Register = () => {
       // Auto-login after registration
       loginContext(user, token);
       
+      // Show success message
+      showSuccess('Account created successfully! Welcome to FromTheEast.');
+      
       // Redirect to home page
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      const errorMessage = err.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
+      showError(errorMessage);
     }
   };
 

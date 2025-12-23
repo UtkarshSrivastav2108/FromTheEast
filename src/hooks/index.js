@@ -10,4 +10,5 @@ export { useWishlist } from './useWishlist';
 export { useOrders, useOrder } from './useOrders';
 export { useProfile } from './useProfile';
 export { useReservations, useReservation } from './useReservations';
+export { useCoupons, useCouponValidation } from './useCoupons';
 

@@ -15,7 +15,7 @@ import Navbar from '../components/Navbar';
 import Announcement from '../components/Announcement';
 import Footer from '../components/Footer';
 import { useWishlist } from '../hooks/useWishlist';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { CircularProgress, Alert } from '@mui/material';
 
 /**

@@ -1,86 +1,131 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import cartService from '../services/cartService';
+import { useSnackbar } from './SnackbarContext';
 
 const CartContext = createContext();
 
 /**
  * Cart Context Provider
- * Manages cart state and operations
+ * Manages cart state and operations using API
  */
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cart, setCart] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { showSuccess, showError } = useSnackbar();
+
+  const fetchCart = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await cartService.getCart();
+      // Ensure we have the cart object with items array
+      if (data && !data.items && data.data) {
+        setCart(data.data);
+      } else {
+        setCart(data);
+      }
+    } catch (err) {
+      console.error('Cart fetch error:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch cart'));
+      // Set empty cart on error (user might not be logged in)
+      setCart({ items: [] });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   /**
-   * Add item to cart or increment quantity
-   * @param {Object} item - Menu item to add
+   * Add item to cart
+   * @param {Object} itemData - Item data
+   * @param {string} itemData.productId - Product ID
+   * @param {number} [itemData.quantity=1] - Quantity
    */
-  const addToCart = useCallback((item) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((cartItem) => cartItem.id === item.id);
-      if (existingItem) {
-        return prevItems.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      }
-      return [...prevItems, { ...item, quantity: 1 }];
-    });
-  }, []);
+  const addToCart = useCallback(async (itemData) => {
+    try {
+      setError(null);
+      const data = await cartService.addToCart(itemData);
+      setCart(data);
+      showSuccess('Item added to cart successfully!');
+      return data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to add item to cart';
+      setError(new Error(errorMessage));
+      showError(errorMessage);
+      throw err;
+    }
+  }, [showSuccess, showError]);
+
+  /**
+   * Update cart item quantity
+   * @param {string} itemId - Cart item ID
+   * @param {number} quantity - New quantity
+   */
+  const updateItem = useCallback(async (itemId, quantity) => {
+    try {
+      setError(null);
+      const data = await cartService.updateCartItem(itemId, quantity);
+      setCart(data);
+      showSuccess('Cart updated successfully!');
+      return data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to update cart item';
+      setError(new Error(errorMessage));
+      showError(errorMessage);
+      throw err;
+    }
+  }, [showSuccess, showError]);
 
   /**
    * Remove item from cart
-   * @param {number} itemId - ID of item to remove
+   * @param {string} itemId - Cart item ID
    */
-  const removeFromCart = useCallback((itemId) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-  }, []);
-
-  /**
-   * Update item quantity in cart
-   * @param {number} itemId - ID of item to update
-   * @param {number} quantity - New quantity
-   */
-  const updateQuantity = useCallback((itemId, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
-      return;
+  const removeItem = useCallback(async (itemId) => {
+    try {
+      setError(null);
+      const data = await cartService.removeFromCart(itemId);
+      setCart(data);
+      showSuccess('Item removed from cart');
+      return data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to remove item from cart';
+      setError(new Error(errorMessage));
+      showError(errorMessage);
+      throw err;
     }
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId ? { ...item, quantity } : item
-      )
-    );
-  }, [removeFromCart]);
+  }, [showSuccess, showError]);
 
   /**
-   * Clear entire cart
+   * Clear cart
    */
-  const clearCart = useCallback(() => {
-    setCartItems([]);
-  }, []);
-
-  /**
-   * Calculate total cart value
-   */
-  const getTotal = useCallback(() => {
-    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  }, [cartItems]);
-
-  /**
-   * Get total number of items in cart
-   */
-  const getItemCount = useCallback(() => {
-    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  }, [cartItems]);
+  const clearCart = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await cartService.clearCart();
+      setCart(data);
+      showSuccess('Cart cleared successfully');
+      return data;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to clear cart';
+      setError(new Error(errorMessage));
+      showError(errorMessage);
+      throw err;
+    }
+  }, [showSuccess, showError]);
 
   const value = {
-    cartItems,
+    cart,
+    loading,
+    error,
     addToCart,
-    removeFromCart,
-    updateQuantity,
+    updateItem,
+    removeItem,
     clearCart,
-    getTotal,
-    getItemCount,
+    refetch: fetchCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
@@ -97,4 +142,3 @@ export const useCart = () => {
   }
   return context;
 };
-

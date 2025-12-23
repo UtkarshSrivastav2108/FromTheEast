@@ -8,6 +8,7 @@
     "start:prod": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node scripts/seedProducts.js",
+    "seed:coupons": "node scripts/seedCoupons.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

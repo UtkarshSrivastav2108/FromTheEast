@@ -19,7 +19,7 @@ import Announcement from '../components/Announcement';
 import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
 import { menuCategories } from '../data';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useProducts } from '../hooks/useProducts';
 import { Favorite, FavoriteBorder, ShoppingCartOutlined } from '@mui/icons-material';
@@ -55,6 +55,7 @@ const ProductList = () => {
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
+    if (!allProducts || !Array.isArray(allProducts)) return [];
     let filtered = [...allProducts];
 
     // Filter by veg/non-veg
@@ -241,7 +242,7 @@ const ProductList = () => {
                           transform: 'translateY(-4px)',
                         },
                       }}
-                      onClick={() => navigate(`/product/${item.id}`)}
+                      onClick={() => navigate(`/product/${itemId}`)}
                     >
                       {/* Product Image */}
                       <Box

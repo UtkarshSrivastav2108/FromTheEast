@@ -14,22 +14,14 @@ import {
   useTheme,
   useMediaQuery,
   alpha,
+  Chip,
 } from '@mui/material';
 import { Add, Remove, DeleteOutline, ArrowBack, ShoppingCartOutlined, LocalOffer } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
+import { useCoupons, useCouponValidation } from '../hooks/useCoupons';
 import { CircularProgress } from '@mui/material';
-
-/**
- * Available coupon codes
- */
-const COUPONS = {
-  WELCOME10: { discount: 10, type: 'percentage', minAmount: 0 },
-  SAVE20: { discount: 20, type: 'percentage', minAmount: 30 },
-  FLAT5: { discount: 5, type: 'fixed', minAmount: 15 },
-  EAST15: { discount: 15, type: 'percentage', minAmount: 25 },
-};
 
 /**
  * Cart Page Component
@@ -40,6 +32,8 @@ const Cart = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const { cart, loading, error, updateItem, removeItem, clearCart, refetch } = useCart();
+  const { coupons, loading: couponsLoading, error: couponsError, refetch: refetchCoupons } = useCoupons();
+  const { validateCoupon, loading: validatingCoupon } = useCouponValidation();
   
   // Extract cart items and normalize data structure
   // Handle both populated product and direct item data
@@ -58,7 +52,7 @@ const Cart = () => {
     };
   });
   
-  // Debug: Log cart data
+  // Debug: Log cart and coupon data
   useEffect(() => {
     if (cart) {
       console.log('Cart data:', cart);
@@ -68,7 +62,13 @@ const Cart = () => {
     if (error) {
       console.error('Cart error:', error);
     }
-  }, [cart, cartItems, error, rawItems]);
+    if (coupons.length > 0) {
+      console.log('Available coupons:', coupons);
+    }
+    if (couponsError) {
+      console.error('Coupons error:', couponsError);
+    }
+  }, [cart, cartItems, error, rawItems, coupons, couponsError]);
   
   const getTotal = () => {
     return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -76,26 +76,33 @@ const Cart = () => {
   
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [appliedCouponData, setAppliedCouponData] = useState(null);
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
+  const [discount, setDiscount] = useState(0);
 
   const subtotal = getTotal();
   const deliveryFee = subtotal > 50 ? 0 : 4.99;
   
-  // Calculate coupon discount
-  let discount = 0;
-  if (appliedCoupon) {
-    const coupon = COUPONS[appliedCoupon];
-    if (subtotal >= coupon.minAmount) {
-      if (coupon.type === 'percentage') {
-        discount = (subtotal * coupon.discount) / 100;
-      } else {
-        discount = coupon.discount;
-      }
-    }
-  }
-  
   const total = subtotal + deliveryFee - discount;
+
+  // Re-validate coupon when subtotal changes
+  useEffect(() => {
+    if (appliedCouponData && subtotal > 0) {
+      validateCoupon(appliedCouponData.code, subtotal)
+        .then((result) => {
+          setDiscount(result.discount);
+          if (result.discount === 0 && subtotal < appliedCouponData.minAmount) {
+            setCouponError(`Minimum order of ₹${appliedCouponData.minAmount} required for this coupon`);
+          } else {
+            setCouponError('');
+          }
+        })
+        .catch(() => {
+          // Error already set by validation
+        });
+    }
+  }, [subtotal, appliedCouponData]);
 
   /**
    * Handle update quantity
@@ -133,7 +140,7 @@ const Cart = () => {
   /**
    * Apply coupon code
    */
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     setCouponError('');
     setCouponSuccess('');
     
@@ -142,22 +149,19 @@ const Cart = () => {
       return;
     }
 
-    const code = couponCode.trim().toUpperCase();
-    const coupon = COUPONS[code];
-
-    if (!coupon) {
-      setCouponError('Invalid coupon code');
-      return;
+    try {
+      const result = await validateCoupon(couponCode.trim(), subtotal);
+      setAppliedCoupon(result.coupon.code);
+      setAppliedCouponData(result.coupon);
+      setDiscount(result.discount);
+      setCouponSuccess(`Coupon "${result.coupon.code}" applied successfully!`);
+      setCouponCode('');
+    } catch (err) {
+      setCouponError(err.message || 'Failed to apply coupon');
+      setAppliedCoupon(null);
+      setAppliedCouponData(null);
+      setDiscount(0);
     }
-
-    if (subtotal < coupon.minAmount) {
-      setCouponError(`Minimum order of ₹${coupon.minAmount} required for this coupon`);
-      return;
-    }
-
-    setAppliedCoupon(code);
-    setCouponSuccess(`Coupon "${code}" applied successfully!`);
-    setCouponCode('');
   };
 
   /**
@@ -165,9 +169,34 @@ const Cart = () => {
    */
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
+    setAppliedCouponData(null);
+    setDiscount(0);
     setCouponCode('');
     setCouponError('');
     setCouponSuccess('');
+  };
+
+  /**
+   * Apply coupon from available coupons list
+   */
+  const handleApplyCouponFromList = async (coupon) => {
+    setCouponError('');
+    setCouponSuccess('');
+    setCouponCode(coupon.code);
+    
+    try {
+      const result = await validateCoupon(coupon.code, subtotal);
+      setAppliedCoupon(result.coupon.code);
+      setAppliedCouponData(result.coupon);
+      setDiscount(result.discount);
+      setCouponSuccess(`Coupon "${result.coupon.code}" applied successfully!`);
+      setCouponCode('');
+    } catch (err) {
+      setCouponError(err.message || 'Failed to apply coupon');
+      setAppliedCoupon(null);
+      setAppliedCouponData(null);
+      setDiscount(0);
+    }
   };
 
   // Only show empty cart if not loading and cart exists but has no items
@@ -508,22 +537,178 @@ const Cart = () => {
 
               {/* Coupon Section */}
               <Box sx={{ mb: 2 }}>
-                {!appliedCoupon ? (
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    mb: 1,
+                    color: 'text.primary',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                  }}
+                >
+                  <LocalOffer sx={{ fontSize: 16 }} />
+                  Available Coupons
+                </Typography>
+
+                {/* Available Coupons List */}
+                {couponsLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                    <CircularProgress size={20} />
+                  </Box>
+                ) : couponsError ? (
+                  <Alert severity="error" sx={{ fontSize: '0.75rem', mb: 1 }}>
+                    Failed to load coupons. Please try again.
+                  </Alert>
+                ) : coupons.length > 0 ? (
+                  <Box sx={{ mb: 1.5, maxHeight: '200px', overflowY: 'auto' }}>
+                    {coupons.map((coupon) => {
+                      const isEligible = subtotal >= coupon.minAmount;
+                      const isApplied = appliedCoupon === coupon.code;
+                      
+                      return (
+                        <Box
+                          key={coupon._id || coupon.code}
+                          sx={{
+                            p: 1.5,
+                            mb: 1,
+                            borderRadius: 1.5,
+                            border: '1px solid',
+                            borderColor: isApplied ? 'success.main' : isEligible ? 'primary.main' : 'divider',
+                            backgroundColor: isApplied
+                              ? alpha(theme.palette.success.main, 0.1)
+                              : isEligible
+                              ? alpha(theme.palette.primary.main, 0.08)
+                              : alpha(theme.palette.grey[500], 0.05),
+                            cursor: isEligible && !isApplied ? 'pointer' : 'not-allowed',
+                            opacity: isEligible ? 1 : 0.6,
+                            transition: 'all 0.2s ease',
+                            '&:hover': isEligible && !isApplied
+                              ? {
+                                  backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                                  borderColor: 'primary.dark',
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                }
+                              : {},
+                          }}
+                          onClick={() => {
+                            if (isEligible && !isApplied) {
+                              handleApplyCouponFromList(coupon);
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Box sx={{ flex: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    fontWeight: 700,
+                                    color: isApplied ? 'success.main' : isEligible ? 'primary.main' : 'text.secondary',
+                                    fontSize: '0.9rem',
+                                  }}
+                                >
+                                  {coupon.code}
+                                </Typography>
+                                {isApplied && (
+                                  <Chip
+                                    label="Applied"
+                                    size="small"
+                                    sx={{
+                                      backgroundColor: 'success.main',
+                                      color: 'white',
+                                      fontSize: '0.65rem',
+                                      height: '20px',
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                              {coupon.description && (
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    color: 'text.secondary',
+                                    display: 'block',
+                                    mb: 0.5,
+                                    fontSize: '0.75rem',
+                                  }}
+                                >
+                                  {coupon.description}
+                                </Typography>
+                              )}
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                <Chip
+                                  label={
+                                    coupon.discountType === 'percentage'
+                                      ? `${coupon.discountValue}% OFF`
+                                      : `₹${coupon.discountValue} OFF`
+                                  }
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: isEligible ? 'primary.main' : 'grey.400',
+                                    color: 'white',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                    height: '22px',
+                                  }}
+                                />
+                                {coupon.minAmount > 0 && (
+                                  <Typography 
+                                    variant="caption" 
+                                    sx={{ 
+                                      color: 'text.secondary',
+                                      fontSize: '0.7rem',
+                                    }}
+                                  >
+                                    Min ₹{coupon.minAmount}
+                                  </Typography>
+                                )}
+                                {!isEligible && subtotal > 0 && (
+                                  <Typography 
+                                    variant="caption" 
+                                    sx={{ 
+                                      color: 'warning.main',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Add ₹{(coupon.minAmount - subtotal).toFixed(2)} more
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Box>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                ) : (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                    No coupons available at the moment
+                  </Typography>
+                )}
+
+                {/* Manual Coupon Input */}
+                {!appliedCoupon && (
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
                     <TextField
                       fullWidth
                       size="small"
-                      placeholder="Enter coupon code"
+                      placeholder="Or enter coupon code"
                       value={couponCode}
                       onChange={(e) => {
                         setCouponCode(e.target.value);
                         setCouponError('');
                       }}
                       onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' && !validatingCoupon) {
                           handleApplyCoupon();
                         }
                       }}
+                      disabled={validatingCoupon}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -540,6 +725,7 @@ const Cart = () => {
                     <Button
                       variant="outlined"
                       onClick={handleApplyCoupon}
+                      disabled={validatingCoupon}
                       sx={{
                         minWidth: '80px',
                         borderRadius: '8px',
@@ -552,13 +738,17 @@ const Cart = () => {
                         },
                       }}
                     >
-                      Apply
+                      {validatingCoupon ? <CircularProgress size={16} /> : 'Apply'}
                     </Button>
                   </Box>
-                ) : (
+                )}
+
+                {/* Applied Coupon Display */}
+                {appliedCoupon && (
                   <Box
                     sx={{
                       p: 1.5,
+                      mt: 1.5,
                       borderRadius: 1,
                       backgroundColor: alpha(theme.palette.success.main, 0.1),
                       border: '1px solid',
@@ -570,9 +760,18 @@ const Cart = () => {
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <LocalOffer sx={{ fontSize: 18, color: 'success.main' }} />
-                      <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
-                        {appliedCoupon} Applied
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
+                          {appliedCoupon} Applied
+                        </Typography>
+                        {appliedCouponData && (
+                          <Typography variant="caption" sx={{ color: 'success.main' }}>
+                            {appliedCouponData.discountType === 'percentage'
+                              ? `${appliedCouponData.discountValue}% off`
+                              : `₹${appliedCouponData.discountValue} off`}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
                     <IconButton
                       size="small"
@@ -588,6 +787,8 @@ const Cart = () => {
                     </IconButton>
                   </Box>
                 )}
+
+                {/* Error/Success Messages */}
                 {couponError && (
                   <Alert severity="error" sx={{ mt: 1, fontSize: '0.75rem' }}>
                     {couponError}
@@ -661,6 +862,7 @@ const Cart = () => {
                   navigate('/checkout', {
                     state: {
                       appliedCoupon,
+                      appliedCouponData,
                       discount,
                     },
                   });

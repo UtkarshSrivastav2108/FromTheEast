@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton, Container, alpha, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Button, Typography, IconButton, Container, alpha, useTheme, useMediaQuery, CircularProgress } from '@mui/material';
 import { ArrowLeft, ArrowRight } from '@mui/icons-material';
-import { sliderItems } from '../data';
 import { useNavigate } from 'react-router-dom';
+import { useSliders } from '../hooks/useSliders';
 
 const Slider = () => {
   const [slideIndex, setSlideIndex] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const { sliders, loading } = useSliders();
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSlideIndex((prev) => (prev < sliderItems.length - 1 ? prev + 1 : 0));
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    if (sliders.length > 0) {
+      const timer = setInterval(() => {
+        setSlideIndex((prev) => (prev < sliders.length - 1 ? prev + 1 : 0));
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [sliders]);
 
   const handleClick = (direction) => {
+    if (sliders.length === 0) return;
     if (direction === 'left') {
-      setSlideIndex(slideIndex > 0 ? slideIndex - 1 : sliderItems.length - 1);
+      setSlideIndex(slideIndex > 0 ? slideIndex - 1 : sliders.length - 1);
     } else {
-      setSlideIndex(slideIndex < sliderItems.length - 1 ? slideIndex + 1 : 0);
+      setSlideIndex(slideIndex < sliders.length - 1 ? slideIndex + 1 : 0);
     }
   };
 
@@ -29,7 +33,19 @@ const Slider = () => {
     return null;
   }
 
-  const currentSlide = sliderItems[slideIndex];
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (sliders.length === 0) {
+    return null;
+  }
+
+  const currentSlide = sliders[slideIndex];
 
   return (
     <Box

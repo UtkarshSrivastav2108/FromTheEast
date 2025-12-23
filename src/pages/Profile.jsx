@@ -31,6 +31,7 @@ import Navbar from '../components/Navbar';
 import Announcement from '../components/Announcement';
 import Footer from '../components/Footer';
 import { useProfile } from '../hooks/useProfile';
+import { useSnackbar } from '../context/SnackbarContext';
 import { CircularProgress, Alert } from '@mui/material';
 
 /**
@@ -41,6 +42,7 @@ const Profile = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { profile, loading, error, updateProfile } = useProfile();
+  const { showSuccess, showError } = useSnackbar();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -107,8 +109,11 @@ const Profile = () => {
         address: formData.address,
       });
       setIsEditing(false);
+      showSuccess('Profile updated successfully!');
     } catch (err) {
-      setSaveError(err.message || 'Failed to update profile');
+      const errorMessage = err.message || 'Failed to update profile';
+      setSaveError(errorMessage);
+      showError(errorMessage);
     }
   };
 

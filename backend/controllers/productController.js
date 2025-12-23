@@ -127,6 +127,45 @@ exports.getFeaturedProducts = async (req, res) => {
 };
 
 /**
+ * Get all categories with metadata
+ * GET /api/products/categories
+ */
+exports.getCategories = async (req, res) => {
+  try {
+    // Category metadata mapping
+    const categoryMetadata = {
+      starters: { id: 'starters', name: 'Starters', icon: '🥢' },
+      ramen: { id: 'ramen', name: 'Ramen', icon: '🍜' },
+      sushi: { id: 'sushi', name: 'Sushi', icon: '🍣' },
+      'rice-bowls': { id: 'rice-bowls', name: 'Rice Bowls', icon: '🍚' },
+      desserts: { id: 'desserts', name: 'Desserts', icon: '🍮' },
+      drinks: { id: 'drinks', name: 'Drinks', icon: '🥤' },
+    };
+
+    // Get unique categories from products
+    const categories = await Product.distinct('category');
+    
+    // Map to include metadata
+    const categoriesWithMetadata = categories
+      .filter(cat => categoryMetadata[cat])
+      .map(cat => categoryMetadata[cat]);
+
+    res.status(200).json({
+      success: true,
+      count: categoriesWithMetadata.length,
+      data: categoriesWithMetadata,
+    });
+  } catch (error) {
+    console.error('Get categories error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching categories',
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Create product (Admin only)
  * POST /api/products
  */

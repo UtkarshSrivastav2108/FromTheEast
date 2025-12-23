@@ -22,8 +22,9 @@ import { ArrowBack } from '@mui/icons-material';
 import Announcement from '../components/Announcement';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useOrders } from '../hooks/useOrders';
+import { useSnackbar } from '../context/SnackbarContext';
 import { CircularProgress, Alert } from '@mui/material';
 
 const Checkout = () => {
@@ -31,9 +32,11 @@ const Checkout = () => {
   const location = useLocation();
   const { cart, loading: cartLoading, clearCart } = useCart();
   const { createOrder, loading: orderLoading } = useOrders();
+  const { showSuccess, showError } = useSnackbar();
   
   // Get coupon discount from navigation state
   const appliedCoupon = location.state?.appliedCoupon || null;
+  const appliedCouponData = location.state?.appliedCouponData || null;
   const couponDiscount = location.state?.discount || 0;
 
   const [formData, setFormData] = useState({
@@ -119,11 +122,16 @@ const Checkout = () => {
       // Clear cart
       await clearCart();
       
-      // Show success and navigate
-      alert(`Order placed successfully! Order Number: ${order.orderNumber || order._id}`);
+      // Show success message
+      const orderNumber = order.data?.orderNumber || order.orderNumber || order._id;
+      showSuccess(`Order placed successfully! Order Number: ${orderNumber}`);
+      
+      // Navigate to orders page
       navigate('/orders');
     } catch (err) {
-      setError(err.message || 'Failed to place order. Please try again.');
+      const errorMessage = err.message || 'Failed to place order. Please try again.';
+      setError(errorMessage);
+      showError(errorMessage);
     }
   };
 
@@ -438,7 +446,7 @@ const Checkout = () => {
                     ₹{subtotal.toFixed(2)}
                   </Typography>
                 </Box>
-                {couponDiscount > 0 && (
+                {couponDiscount > 0 && appliedCoupon && (
                   <Box
                     sx={{
                       display: 'flex',
@@ -447,7 +455,11 @@ const Checkout = () => {
                     }}
                   >
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      Discount ({appliedCoupon})
+                      Discount ({appliedCoupon}
+                      {appliedCouponData && appliedCouponData.discountType === 'percentage'
+                        ? ` - ${appliedCouponData.discountValue}%`
+                        : ''}
+                      )
                     </Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
                       -₹{couponDiscount.toFixed(2)}

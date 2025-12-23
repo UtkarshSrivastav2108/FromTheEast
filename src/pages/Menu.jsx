@@ -40,7 +40,7 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { menuCategories } from '../data';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../context/CartContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useProducts } from '../hooks/useProducts';
 import { CircularProgress, Alert } from '@mui/material';
@@ -53,7 +53,7 @@ const Menu = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
-  const { cart, addToCart, updateItem, removeItem, refetch } = useCart();
+  const { cart, addToCart, updateItem, removeItem } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { products: allProducts, loading: productsLoading, error: productsError } = useProducts();
   
@@ -229,15 +229,12 @@ const Menu = () => {
    */
   const handleAddToCart = async (item) => {
     try {
-      // Menu items from data.js have numeric IDs, but we need to find the product in the database
-      // For now, we'll use the item ID and let the backend handle it
-      // If items are from API, use _id, otherwise use id
       const productId = item._id || item.id;
       await addToCart({ productId, quantity: 1 });
-      await refetch(); // Refresh cart after adding
+      // Cart context automatically updates all components
     } catch (err) {
       console.error('Error adding to cart:', err);
-      // Error handled in hook
+      // Error handled in context
     }
   };
 
@@ -261,7 +258,7 @@ const Menu = () => {
         });
         if (cartItem && removeItem) {
           await removeItem(cartItem._id || cartItem.id);
-          await refetch();
+          // Cart context automatically updates all components
           return;
         }
       }
@@ -275,7 +272,7 @@ const Menu = () => {
       
       if (cartItem) {
         await updateItem(cartItem._id || cartItem.id, newQuantity);
-        await refetch(); // Refresh cart after updating
+        // Cart context automatically updates all components
       } else if (delta > 0) {
         // Item not in cart, add it
         await handleAddToCart(item);
