@@ -39,9 +39,11 @@ import {
 } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { menuCategories, menuItems } from '../data';
+import { menuCategories } from '../data';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
+import { useProducts } from '../hooks/useProducts';
+import { CircularProgress, Alert } from '@mui/material';
 
 /**
  * Menu Page Component
@@ -53,6 +55,7 @@ const Menu = () => {
   const navigate = useNavigate();
   const { cart, addToCart, updateItem, removeItem, refetch } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { products: allProducts, loading: productsLoading, error: productsError } = useProducts();
   
   // Extract cart items from hook
   const cartItems = cart?.items || [];
@@ -68,17 +71,17 @@ const Menu = () => {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [priceRangeInitialized, setPriceRangeInitialized] = useState(false);
 
-  // Get all menu items flattened for filtering
+  // Process products from API - add categoryId and categoryName
   const allMenuItems = useMemo(() => {
-    const items = [];
-    menuCategories.forEach((category) => {
-      const categoryItems = menuItems[category.id] || [];
-      categoryItems.forEach((item) => {
-        items.push({ ...item, categoryId: category.id, categoryName: category.name });
-      });
-    });
-    return items;
-  }, []);
+    if (!allProducts || allProducts.length === 0) return [];
+    return allProducts.map((item) => ({
+      ...item,
+      categoryId: item.category,
+      categoryName: menuCategories.find(cat => cat.id === item.category)?.name || item.category,
+      // Map MongoDB _id to id for compatibility
+      id: item.id || item._id,
+    }));
+  }, [allProducts]);
 
   // Calculate min and max prices
   const priceRangeValues = useMemo(() => {
@@ -177,14 +180,16 @@ const Menu = () => {
 
   // Initialize price range
   useEffect(() => {
-    if (!priceRangeInitialized && priceRangeValues[0] !== priceRangeValues[1]) {
+    if (!priceRangeInitialized && priceRangeValues[0] !== priceRangeValues[1] && allMenuItems.length > 0) {
       setPriceRange(priceRangeValues);
       setPriceRangeInitialized(true);
     }
-  }, [priceRangeValues, priceRangeInitialized]);
+  }, [priceRangeValues, priceRangeInitialized, allMenuItems.length]);
 
   // Handle scroll to update active category
   useEffect(() => {
+    if (allMenuItems.length === 0) return;
+    
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 150;
       let currentCategory = 'starters';
@@ -201,7 +206,7 @@ const Menu = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [filteredMenuItems]);
+  }, [filteredMenuItems, allMenuItems.length]);
 
   /**
    * Get quantity of item in cart
@@ -275,6 +280,22 @@ const Menu = () => {
       // Error handled in hook
     }
   };
+
+  if (productsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (productsError) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Alert severity="error">{productsError.message}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -1047,20 +1068,17 @@ const Menu = () => {
                             </Box>
                             {/* Wishlist Button */}
                             <IconButton
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                if (isInWishlist(item.id)) {
-                                  removeFromWishlist(item.id);
-                                } else {
-                                  addToWishlist({
-                                    id: item.id,
-                                    name: item.name,
-                                    desc: item.description,
-                                    price: item.price,
-                                    img: item.image,
-                                    isVeg: item.isVeg,
-                                    badges: item.badges,
-                                  });
+                                try {
+                                  const itemId = item._id || item.id;
+                                  if (isInWishlist(itemId)) {
+                                    await removeFromWishlist(itemId);
+                                  } else {
+                                    await addToWishlist({ productId: itemId });
+                                  }
+                                } catch (err) {
+                                  // Error handled in hook
                                 }
                               }}
                               sx={{
@@ -1068,7 +1086,7 @@ const Menu = () => {
                                 bottom: 8,
                                 right: 8,
                                 backgroundColor: 'white',
-                                color: isInWishlist(item.id) ? 'error.main' : 'text.secondary',
+                                color: isInWishlist(item._id || item.id) ? 'error.main' : 'text.secondary',
                                 width: '28px',
                                 height: '28px',
                                 '& svg': {
@@ -1079,7 +1097,7 @@ const Menu = () => {
                                 },
                               }}
                             >
-                              {isInWishlist(item.id) ? <Favorite /> : <FavoriteBorder />}
+                              {isInWishlist(item._id || item.id) ? <Favorite /> : <FavoriteBorder />}
                             </IconButton>
                           </Box>
 
