@@ -138,7 +138,7 @@ const Register = () => {
         width: '100vw',
         height: '100vh',
         position: 'relative',
-        backgroundImage: 'url("https://images.unsplash.com/photo-1551218808-94e220e084d2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80")',
+        backgroundImage: 'url("https://images.unsplash.com/photo-1512058564366-18510be2db19?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',

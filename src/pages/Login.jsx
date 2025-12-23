@@ -122,7 +122,7 @@ const Login = () => {
         width: '100vw',
         height: '100vh',
         position: 'relative',
-        backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80")',
+        backgroundImage: 'url("https://images.unsplash.com/photo-1603133872878-684f208fb84b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',
