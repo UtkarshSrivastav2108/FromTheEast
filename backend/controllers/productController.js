@@ -40,7 +40,23 @@ exports.getAllProducts = async (req, res) => {
  */
 exports.getProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+    let product;
+    const mongoose = require('mongoose');
+    
+    // Check if id is a valid MongoDB ObjectId
+    if (mongoose.Types.ObjectId.isValid(id) && typeof id === 'string' && id.length === 24) {
+      // Try to find by MongoDB ObjectId
+      product = await Product.findById(id);
+    }
+    
+    // If not found by ObjectId, try to find by numeric ID
+    if (!product) {
+      const numericId = typeof id === 'number' ? id : parseInt(id, 10);
+      if (!isNaN(numericId)) {
+        product = await Product.findOne({ id: numericId });
+      }
+    }
 
     if (!product) {
       return res.status(404).json({

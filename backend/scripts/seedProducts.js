@@ -18,10 +18,11 @@ const seedProducts = async () => {
     await Product.deleteMany({});
     console.log('Cleared existing products');
 
-    // Products data from frontend
+    // Products data from frontend - matching numeric IDs
     const products = [
-      // Starters
+      // Starters (id: 1-4)
       {
+        id: 1,
         name: 'Edamame',
         description: 'Steamed soybeans with sea salt',
         price: 6.99,
@@ -31,6 +32,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 2,
         name: 'Gyoza',
         description: 'Pan-fried pork dumplings with dipping sauce',
         price: 8.99,
@@ -41,6 +43,7 @@ const seedProducts = async () => {
         featured: true,
       },
       {
+        id: 3,
         name: 'Spring Rolls',
         description: 'Crispy vegetable spring rolls with sweet chili',
         price: 7.99,
@@ -50,6 +53,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 4,
         name: 'Chicken Karaage',
         description: 'Japanese fried chicken with lemon',
         price: 9.99,
@@ -58,8 +62,9 @@ const seedProducts = async () => {
         isVeg: false,
         badges: ['Bestseller'],
       },
-      // Ramen
+      // Ramen (id: 5-8)
       {
+        id: 5,
         name: 'Tonkotsu Ramen',
         description: 'Rich pork bone broth with chashu and soft-boiled egg',
         price: 14.99,
@@ -70,6 +75,7 @@ const seedProducts = async () => {
         featured: true,
       },
       {
+        id: 6,
         name: 'Miso Ramen',
         description: 'Savory miso broth with corn and butter',
         price: 13.99,
@@ -79,6 +85,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 7,
         name: 'Shoyu Ramen',
         description: 'Classic soy sauce broth with nori and bamboo',
         price: 13.99,
@@ -88,6 +95,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 8,
         name: 'Vegetarian Ramen',
         description: 'Mushroom and vegetable broth with tofu',
         price: 12.99,
@@ -96,8 +104,9 @@ const seedProducts = async () => {
         isVeg: true,
         badges: [],
       },
-      // Sushi
+      // Sushi (id: 9-12)
       {
+        id: 9,
         name: 'Salmon Sashimi',
         description: 'Fresh Atlantic salmon, 6 pieces',
         price: 16.99,
@@ -108,6 +117,7 @@ const seedProducts = async () => {
         featured: true,
       },
       {
+        id: 10,
         name: 'Dragon Roll',
         description: 'Eel, cucumber, avocado, eel sauce',
         price: 15.99,
@@ -117,6 +127,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 11,
         name: 'California Roll',
         description: 'Crab, avocado, cucumber',
         price: 10.99,
@@ -126,6 +137,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 12,
         name: 'Vegetable Roll',
         description: 'Assorted fresh vegetables',
         price: 8.99,
@@ -134,8 +146,9 @@ const seedProducts = async () => {
         isVeg: true,
         badges: [],
       },
-      // Rice Bowls
+      // Rice Bowls (id: 13-15)
       {
+        id: 13,
         name: 'Teriyaki Chicken Bowl',
         description: 'Grilled chicken with teriyaki sauce and vegetables',
         price: 13.99,
@@ -146,6 +159,7 @@ const seedProducts = async () => {
         featured: true,
       },
       {
+        id: 14,
         name: 'Beef Bulgogi Bowl',
         description: 'Marinated beef with kimchi and rice',
         price: 14.99,
@@ -155,6 +169,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 15,
         name: 'Tofu Teriyaki Bowl',
         description: 'Crispy tofu with vegetables and teriyaki',
         price: 11.99,
@@ -163,8 +178,9 @@ const seedProducts = async () => {
         isVeg: true,
         badges: [],
       },
-      // Desserts
+      // Desserts (id: 16-18)
       {
+        id: 16,
         name: 'Mochi Ice Cream',
         description: 'Assorted flavors: green tea, vanilla, strawberry',
         price: 7.99,
@@ -174,6 +190,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 17,
         name: 'Matcha Tiramisu',
         description: 'Japanese twist on classic tiramisu',
         price: 8.99,
@@ -183,6 +200,7 @@ const seedProducts = async () => {
         badges: ['Bestseller'],
       },
       {
+        id: 18,
         name: 'Dorayaki',
         description: 'Sweet red bean pancake sandwich',
         price: 6.99,
@@ -191,8 +209,9 @@ const seedProducts = async () => {
         isVeg: true,
         badges: [],
       },
-      // Drinks
+      // Drinks (id: 19-21)
       {
+        id: 19,
         name: 'Matcha Latte',
         description: 'Traditional green tea with steamed milk',
         price: 5.99,
@@ -202,6 +221,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 20,
         name: 'Yuzu Lemonade',
         description: 'Refreshing Japanese citrus lemonade',
         price: 4.99,
@@ -211,6 +231,7 @@ const seedProducts = async () => {
         badges: [],
       },
       {
+        id: 21,
         name: 'Sake',
         description: 'Premium Japanese rice wine',
         price: 12.99,

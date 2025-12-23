@@ -14,7 +14,7 @@ import api from './api';
  */
 export const getProducts = async (params = {}) => {
   const response = await api.get('/products', params);
-  return response.data;
+  return response.data?.data || response.data || [];
 };
 
 /**
@@ -24,7 +24,7 @@ export const getProducts = async (params = {}) => {
  */
 export const getProduct = async (id) => {
   const response = await api.get(`/products/${id}`);
-  return response.data;
+  return response.data?.data || response.data;
 };
 
 /**
@@ -34,7 +34,7 @@ export const getProduct = async (id) => {
  */
 export const getProductsByCategory = async (category) => {
   const response = await api.get(`/products/category/${category}`);
-  return response.data;
+  return response.data?.data || response.data || [];
 };
 
 /**
@@ -43,7 +43,7 @@ export const getProductsByCategory = async (category) => {
  */
 export const getFeaturedProducts = async () => {
   const response = await api.get('/products/featured');
-  return response.data;
+  return response.data?.data || response.data || [];
 };
 
 export default {
