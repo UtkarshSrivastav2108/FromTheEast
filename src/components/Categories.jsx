@@ -1,40 +1,70 @@
-import styled from "styled-components";
-import { categories } from "../data";
-import { mobile } from "../responsive";
-import CategoryItem from "./CategoryItem";
-
-const Container = styled.div`
-  display: flex;
-  padding: 20px;
-  justify-content: space-between;
-  ${mobile({ padding: "0px", flexDirection: "column" })}
-
-`;
-
-
-const Heading = styled.div`
-display:flex;
-justify-content:center;
-align-items:center"
-
-`;
+import React from 'react';
+import { Box, Typography, Container } from '@mui/material';
+import { categories } from '../data';
+import CategoryItem from './CategoryItem';
 
 const Categories = () => {
   return (
-    <>
-      <Heading>
-        <h1 style={{ color: "black", marginTop: "40px", marginBottom: "20px" }}>OUR SPECIALS</h1>
-
-      </Heading>
-      <Heading>
-        <hr style={{ background: "red", border: "none", marginBottom: "20px", display: "flex", width: "180px", justifyContent: "center", alignItems: "center", textDecorationColor: "red", height: "2px", content: "", }} />
-      </Heading>
-      <Container>
-        {categories.map((item) => (
-          <CategoryItem item={item} key={item.id} />
-        ))}
+    <Box
+      sx={{
+        padding: { xs: '48px 16px', md: '80px 24px' },
+        backgroundColor: 'background.default',
+      }}
+    >
+      <Container maxWidth="lg">
+        <Box
+          sx={{
+            textAlign: 'center',
+            marginBottom: { xs: 4, md: 6 },
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{
+              fontSize: { xs: '2rem', md: '2.75rem' },
+              fontWeight: 700,
+              marginBottom: 2,
+              color: 'text.primary',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Our Specials
+          </Typography>
+          <Box
+            sx={{
+              width: '80px',
+              height: '4px',
+              backgroundColor: 'primary.main',
+              margin: '0 auto',
+              borderRadius: '2px',
+            }}
+          />
+          <Typography
+            variant="body1"
+            sx={{
+              marginTop: 3,
+              color: 'text.secondary',
+              fontSize: { xs: '0.9rem', md: '1rem' },
+              maxWidth: '600px',
+              margin: '24px auto 0',
+            }}
+          >
+            Discover our signature dishes crafted with authentic recipes and premium ingredients
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+            gap: { xs: 2, md: 3 },
+          }}
+        >
+          {categories.map((item) => (
+            <CategoryItem item={item} key={item.id} />
+          ))}
+        </Box>
       </Container>
-    </>
+    </Box>
   );
 };
 

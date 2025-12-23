@@ -1,6 +1,6 @@
 import React from 'react'
-import { Badge } from "@material-ui/core";
-import { Search, ShoppingCartOutlined } from "@material-ui/icons";
+import { Badge } from "@mui/material";
+import { Search, ShoppingCartOutlined } from "@mui/icons-material";
 import styled from "styled-components";
 
 // Link

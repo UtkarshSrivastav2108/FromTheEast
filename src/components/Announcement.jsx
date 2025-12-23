@@ -1,18 +1,47 @@
-import styled from "styled-components";
-
-const Container = styled.div`
-  height: 30px;
-  background-color: black;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 500;
-`;
+import React from 'react';
+import { Box, Typography, alpha } from '@mui/material';
 
 const Announcement = () => {
-  return <Container>Super Deal! Free Shipping on Orders Over $50</Container>;
+  return (
+    <Box
+      sx={{
+        height: { xs: '28px', sm: '32px' },
+        backgroundColor: 'primary.main',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+          animation: 'shimmer 3s infinite',
+        },
+        '@keyframes shimmer': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      }}
+    >
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 500,
+          fontSize: { xs: '10px', sm: '12px' },
+          letterSpacing: '0.5px',
+          zIndex: 1,
+        }}
+      >
+        🎉 Super Deal! Free Shipping on Orders Over ₹50
+      </Typography>
+    </Box>
+  );
 };
 
 export default Announcement;

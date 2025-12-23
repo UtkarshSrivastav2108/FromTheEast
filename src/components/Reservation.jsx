@@ -1,138 +1,251 @@
-import React from 'react'
-import styled from 'styled-components';
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  TextField,
+  Select,
+  MenuItem,
+  Button,
+  FormControl,
+  InputLabel,
+  Grid,
+  Container,
+  Paper,
+} from '@mui/material';
 
-const Container = styled.div`
-display:flex;
-justify-content:center;
-align-items:center"
-padding:20px;
-background-color:lightyellow;
+const Reservation = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    contact: '',
+    persons: '',
+    date: '',
+    time: '',
+  });
 
-`;
+  const handleChange = (field) => (event) => {
+    setFormData({
+      ...formData,
+      [field]: event.target.value,
+    });
+  };
 
-const Heading = styled.div`
-display:flex;
-justify-content:center;
-align-items:center"
-background-color:lightyellow;
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // Handle form submission
+    alert('Reservation submitted successfully!');
+  };
 
-`;
+  return (
+    <Box
+      sx={{
+        padding: { xs: '48px 16px', md: '80px 24px' },
+        backgroundColor: 'background.default',
+      }}
+    >
+      <Container maxWidth="md">
+        <Box
+          sx={{
+            textAlign: 'center',
+            marginBottom: { xs: 4, md: 6 },
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{
+              fontSize: { xs: '2rem', md: '2.75rem' },
+              fontWeight: 700,
+              marginBottom: 2,
+              color: 'text.primary',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Make a Reservation
+          </Typography>
+          <Box
+            sx={{
+              width: '80px',
+              height: '4px',
+              backgroundColor: 'primary.main',
+              margin: '0 auto',
+              borderRadius: '2px',
+            }}
+          />
+          <Typography
+            variant="body1"
+            sx={{
+              marginTop: 3,
+              color: 'text.secondary',
+              fontSize: { xs: '0.9rem', md: '1rem' },
+              maxWidth: '600px',
+              margin: '24px auto 0',
+            }}
+          >
+            Book your table and enjoy an authentic dining experience
+          </Typography>
+        </Box>
 
-const Subeading = styled.div`
-display:flex;
-justify-content:center;
-align-items:center"
-background-color:lightyellow;
-`;
+        <Paper
+          elevation={0}
+          sx={{
+            padding: { xs: 3, md: 5 },
+            borderRadius: '16px',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+          }}
+        >
+          <Box component="form" onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  value={formData.name}
+                  onChange={handleChange('name')}
+                  variant="outlined"
+                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange('email')}
+                  variant="outlined"
+                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Contact Number"
+                  value={formData.contact}
+                  onChange={handleChange('contact')}
+                  variant="outlined"
+                  required
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>Number of Guests</InputLabel>
+                  <Select
+                    value={formData.persons}
+                    onChange={handleChange('persons')}
+                    label="Number of Guests"
+                    sx={{
+                      borderRadius: '12px',
+                    }}
+                  >
+                    <MenuItem value={1}>1 Guest</MenuItem>
+                    <MenuItem value={2}>2 Guests</MenuItem>
+                    <MenuItem value={3}>3 Guests</MenuItem>
+                    <MenuItem value={4}>4 Guests</MenuItem>
+                    <MenuItem value={5}>5+ Guests</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Date"
+                  value={formData.date}
+                  onChange={handleChange('date')}
+                  variant="outlined"
+                  required
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="time"
+                  label="Time"
+                  value={formData.time}
+                  onChange={handleChange('time')}
+                  variant="outlined"
+                  required
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{
+                    padding: '16px',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    borderRadius: '12px',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    boxShadow: '0 4px 16px rgba(211, 47, 47, 0.3)',
+                    transition: 'all 0.3s ease',
+                    marginTop: 2,
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 24px rgba(211, 47, 47, 0.4)',
+                    },
+                  }}
+                >
+                  Book My Table
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
+  );
+};
 
-const ParaHeading = styled.div`
-display:flex;
-justify-content:center;
-align-items:center"
-`;
-const FormContainer = styled.div`
-width:50vw;
-height:50vh;
-display:flex;
-justify-content: center;
-`;
-
-
-
-
-const Button = styled.button`
-padding: 15px 25px;
-font-size: 16px;
-border:none;
-background-color: red;
-color:white;
-border-radius:20px;
-cursor: pointer;
-margin-left: 30px;
-margin-top: 50px;
-&:hover {
-  background-color: white;
-  transition: background-color 0.8s ease;
-  
-color:red;
-border:1px solid red;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-`;
-
-
-function Reservation() {
-    return (
-        <>
-            <Heading style={{ backgroundColor: "lightyellow" }}>
-                <h1 style={{ color: "black", marginTop: "70px", marginBottom: "20px" }}>RESERVATIONS</h1>
-
-            </Heading>
-            <Heading style={{ backgroundColor: "lightyellow" }}>
-                <hr style={{ background: "red", border: "none", marginBottom: "20px", display: "flex", width: "180px", justifyContent: "center", alignItems: "center", textDecorationColor: "red", height: "2px", content: "", }} />
-            </Heading>
-
-            <Subeading style={{ backgroundColor: "lightyellow" }}>
-                <h3 style={{ color: "black", marginTop: "10px", marginBottom: "20px" }}>BOOKING FORM</h3>
-            </Subeading>
-
-            <ParaHeading style={{ backgroundColor: "lightyellow" }}>
-                <p style={{ color: "black", marginTop: "1px", marginBottom: "20px" }}>PLEASE FILL OUT ALL REQUIRED* FIELDS. THANKS!</p>
-            </ParaHeading>
-
-            <Container>
-
-                <FormContainer>
-
-
-                    <form>
-                        <div class="Fields" style={{ marginTop: "30px" }}>
-                            <div style={{ display: "flex" }}>
-
-                                <input style={{ backgroundColor: "lightyellow", width: "320px", margin: "40px 20px 20px 20px", borderBottom: "1px solid gray", borderTop: "none", borderLeft: "none", borderRight: "none" }} placeholder="Name" type="text" id="fname" name="firstname" />
-                                <input style={{ backgroundColor: "lightyellow", width: "320px", margin: "40px 20px 20px 20px", borderBottom: "1px solid gray", borderTop: "none", borderLeft: "none", borderRight: "none" }} placeholder="Email" type="text" id="emai;" name="email" />
-
-
-                            </div>
-                            <div style={{ display: "flex" }}>
-
-                                <input style={{ backgroundColor: "lightyellow", width: "320px", margin: "40px 20px 20px 20px", borderBottom: "1px solid gray", borderTop: "none", borderLeft: "none", borderRight: "none" }} placeholder="Contact No." type="text" id="contact" name="contact" />
-                                <select style={{ backgroundColor: "lightyellow", width: "320px", margin: "40px 20px 20px 20px", borderBottom: "1px solid gray", borderTop: "none", borderLeft: "none", borderRight: "none" }} name="no_of_persons" id="no_of_persons" class="selectpicker">
-                                    <option selected disabled>No. Of persons</option>
-                                    <option>1</option>
-                                    <option>2</option>
-                                    <option>3</option>
-                                </select>
-
-
-                            </div>
-
-
-                            <div style={{ display: "flex" }}>
-
-                                <input style={{ backgroundColor: "lightyellow", width: "320px", margin: "40px 20px 20px 20px", borderBottom: "1px solid gray", borderTop: "none", borderLeft: "none", borderRight: "none" }} type="date" name="date-picker" id="date-picker" placeholder="Date" required="required" data-error="Date is required." />
-                                <input style={{ backgroundColor: "lightyellow", width: "320px", margin: "40px 20px 20px 20px", borderBottom: "1px solid gray", borderTop: "none", borderLeft: "none", borderRight: "none" }} type="time" name="time-picker" id="time-picker" placeholder="Time" required="required" data-error="Time is required." />
-
-
-                            </div>
-
-
-                        </div>
-                        <Subeading>
-                            <Button type="submit" value="SEND" id="submit"   >BOOK MY TABLE </Button>
-                        </Subeading>
-                    </form>
-
-
-                </FormContainer>
-
-
-
-            </Container>
-        </>
-    )
-}
-
-export default Reservation
+export default Reservation;

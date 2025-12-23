@@ -1,93 +1,239 @@
-import styled from "styled-components";
-import { mobile } from "../responsive";
+import React, { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
+  Box,
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Alert,
+} from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
+import { useAuth as useAuthHook } from '../hooks/useAuth';
 
-const Container = styled.div`
-  width: 100vw;
-  height: 100vh;
-  background: linear-gradient(
-      rgba(255, 255, 255, 0.5),
-      rgba(255, 255, 255, 0.5)
-    ),
-    url("https://images.unsplash.com/photo-1604830250692-54c16c369b06?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80")
-      center;
-  background-size: cover;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Wrapper = styled.div`
-  width: 25%;
-  padding: 20px;
-  background-color: white;
-  ${mobile({ width: "75%" })}
-`;
-
-const Title = styled.h1`
-  font-size: 24px;
-  font-weight: 300;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Input = styled.input`
-  flex: 1;
-  min-width: 40%;
-  margin: 10px 0;
-  padding: 10px;
-`;
-
-const Button = styled.button`
-  width: 40%;
-  border: none;
-  padding: 15px 25px;
-  background-color: red;
-color:white;
-border-radius:20px;
-cursor: pointer;
-border:none
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-&:hover {
-  background-color: white;
-  transition: background-color 0.8s ease;
-  
-color:red;
-`;
-
-const List = styled.a`
-  margin: 5px 0px;
-  font-size: 12px;
-  text-decoration: underline;
-  cursor: pointer;
-`;
-
+/**
+ * Login Page Component
+ * Handles user authentication
+ */
 const Login = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login: loginContext } = useAuth();
+  const { login: loginAPI, loading } = useAuthHook();
+  
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+
+  /**
+   * Handle form field changes
+   * @param {string} field - Field name
+   * @returns {Function} Change handler
+   */
+  const handleChange = (field) => (event) => {
+    setFormData({
+      ...formData,
+      [field]: event.target.value,
+    });
+    setError('');
+  };
+
+  /**
+   * Handle form submission
+   * @param {Event} event - Form submit event
+   */
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+
+    // Basic validation
+    if (!formData.username || !formData.password) {
+      setError('Please enter both username and password');
+      return;
+    }
+
+    try {
+      // Call API to login
+      const { user, token } = await loginAPI({
+        username: formData.username,
+        password: formData.password,
+      });
+      
+      // Update context with user data
+      loginContext(user, token);
+      
+      // Redirect to the page user was trying to access, or home
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.');
+    }
+  };
+
   return (
-    <Container>
-      <Wrapper>
-        <Title>SIGN IN</Title>
-        <Form>
-          <Input placeholder="username" />
-          <Input placeholder="password" />
-          <Button>LOGIN</Button>
-          <Link to="/" className="link"><List >DO NOT YOU REMEMBER THE PASSWORD?</List></Link>
-          <Link to="/register" className="link"> <List> CREATE A NEW ACCOUNT</List></Link>
-        </Form>
-      </Wrapper>
-    </Container>
+    <Box
+      sx={{
+        width: '100vw',
+        height: '100vh',
+        position: 'relative',
+        backgroundImage: 'url("https://images.unsplash.com/photo-1604830250692-54c16c369b06?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(4px)',
+        },
+      }}
+    >
+      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
+        {/* Back Button */}
+        <IconButton
+          onClick={() => navigate('/')}
+          sx={{
+            position: 'absolute',
+            top: { xs: 16, sm: 24 },
+            left: { xs: 16, sm: 24 },
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+            color: 'text.primary',
+            '&:hover': {
+              backgroundColor: 'white',
+              transform: 'scale(1.1)',
+            },
+            transition: 'all 0.3s ease',
+            zIndex: 2,
+          }}
+        >
+          <ArrowBack />
+        </IconButton>
+        <Paper
+          elevation={3}
+          sx={{
+            width: { xs: '90%', sm: '360px', md: '400px' },
+            maxWidth: '100%',
+            padding: { xs: 2, sm: 2.5 },
+            backgroundColor: 'white',
+            margin: '0 auto',
+            borderRadius: 2,
+          }}
+        >
+          <Typography 
+            variant="h5"
+            sx={{
+              fontSize: { xs: '18px', sm: '20px' },
+              fontWeight: 600,
+              marginBottom: 2,
+              textAlign: 'center',
+              letterSpacing: '0.5px',
+            }}
+          >
+            SIGN IN
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {error && (
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
+                {error}
+              </Alert>
+            )}
+            <TextField
+              placeholder="username"
+              variant="outlined"
+              fullWidth
+              required
+              value={formData.username}
+              onChange={handleChange('username')}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+              }}
+            />
+            <TextField
+              placeholder="password"
+              type="password"
+              variant="outlined"
+              fullWidth
+              required
+              value={formData.password}
+              onChange={handleChange('password')}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={loading}
+              sx={{
+                padding: { xs: '10px 20px', sm: '12px 24px' },
+                backgroundColor: 'primary.main',
+                color: 'white',
+                borderRadius: 2,
+                marginTop: 0.5,
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                fontSize: '13px',
+                letterSpacing: '0.5px',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                  boxShadow: '0 4px 12px rgba(211, 47, 47, 0.3)',
+                },
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {loading ? 'LOGGING IN...' : 'LOGIN'}
+            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+              <Link
+                to="/forgot-password"
+                style={{
+                  fontSize: '13px',
+                  textDecoration: 'underline',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                }}
+              >
+                FORGOT PASSWORD?
+              </Link>
+              <Link
+                to="/register"
+                style={{
+                  fontSize: '13px',
+                  textDecoration: 'underline',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                }}
+              >
+                CREATE A NEW ACCOUNT
+              </Link>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 
