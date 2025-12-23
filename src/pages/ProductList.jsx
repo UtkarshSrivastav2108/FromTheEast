@@ -18,11 +18,12 @@ import Navbar from '../components/Navbar';
 import Announcement from '../components/Announcement';
 import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
-import { menuItems, menuCategories } from '../data';
-import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
+import { menuCategories } from '../data';
+import { useCart } from '../hooks/useCart';
+import { useWishlist } from '../hooks/useWishlist';
+import { useProducts } from '../hooks/useProducts';
 import { Favorite, FavoriteBorder, ShoppingCartOutlined } from '@mui/icons-material';
-import { IconButton, Button, Chip } from '@mui/material';
+import { IconButton, Button, Chip, CircularProgress, Alert } from '@mui/material';
 
 /**
  * ProductList Page Component
@@ -36,6 +37,11 @@ const ProductList = () => {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   
+  // Fetch products from API
+  const { products: allProducts, loading, error } = useProducts(
+    category ? { category } : {}
+  );
+  
   const [sortBy, setSortBy] = useState('newest');
   const [filterVeg, setFilterVeg] = useState('all');
 
@@ -45,20 +51,6 @@ const ProductList = () => {
       return menuCategories.find((cat) => cat.id === category);
     }
     return null;
-  }, [category]);
-
-  // Get products for category or all products
-  const allProducts = useMemo(() => {
-    if (category && menuItems[category]) {
-      return menuItems[category];
-    }
-    // If no category, show all products
-    const all = [];
-    menuCategories.forEach((cat) => {
-      const items = menuItems[cat.id] || [];
-      all.push(...items);
-    });
-    return all;
   }, [category]);
 
   // Filter and sort products
@@ -89,29 +81,47 @@ const ProductList = () => {
    * Handle add to cart
    * @param {Object} item - Product item
    */
-  const handleAddToCart = (item) => {
-    addToCart(item);
+  const handleAddToCart = async (item) => {
+    try {
+      const productId = item._id || item.id;
+      await addToCart({ productId, quantity: 1 });
+    } catch (err) {
+      // Error handled in hook
+    }
   };
 
   /**
    * Handle wishlist toggle
    * @param {Object} item - Product item
    */
-  const handleWishlistToggle = (item) => {
-    if (isInWishlist(item.id)) {
-      removeFromWishlist(item.id);
-    } else {
-      addToWishlist({
-        id: item.id,
-        name: item.name,
-        desc: item.description,
-        price: item.price,
-        img: item.image,
-        isVeg: item.isVeg,
-        badges: item.badges,
-      });
+  const handleWishlistToggle = async (item) => {
+    try {
+      const itemId = item._id || item.id;
+      if (isInWishlist(itemId)) {
+        await removeFromWishlist(itemId);
+      } else {
+        await addToWishlist({ productId: itemId });
+      }
+    } catch (err) {
+      // Error handled in hook
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Alert severity="error">{error.message}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -213,9 +223,10 @@ const ProductList = () => {
           {filteredProducts.length > 0 ? (
             <Grid container spacing={2} sx={{ px: { xs: 2, md: 2.5 } }}>
               {filteredProducts.map((item) => {
-                const isWishlisted = isInWishlist(item.id);
+                const itemId = item._id || item.id;
+                const isWishlisted = isInWishlist(itemId);
                 return (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={itemId}>
                     <Paper
                       elevation={0}
                       sx={{
