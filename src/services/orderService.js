@@ -11,7 +11,7 @@ import api from './api';
  */
 export const getOrders = async () => {
   const response = await api.get('/orders');
-  return response.data;
+  return response.data?.data || response.data || [];
 };
 
 /**
@@ -21,7 +21,7 @@ export const getOrders = async () => {
  */
 export const getOrder = async (id) => {
   const response = await api.get(`/orders/${id}`);
-  return response.data;
+  return response.data?.data || response.data;
 };
 
 /**

@@ -18,6 +18,7 @@ import Cart from './pages/Cart';
 import Wishlist from './pages/Wishlist';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import Reservation from './pages/Reservation';
@@ -88,6 +89,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <Orders />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orders/:id"
+                    element={
+                      <ProtectedRoute>
+                        <OrderDetail />
                       </ProtectedRoute>
                     }
                   />
