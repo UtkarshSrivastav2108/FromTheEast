@@ -10,7 +10,19 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api
  * @returns {string|null} JWT token or null
  */
 const getAuthToken = () => {
-  return localStorage.getItem('authToken');
+  const token = localStorage.getItem('authToken');
+  // Handle case where token might be stored as JSON string
+  if (token) {
+    try {
+      // Try to parse if it's a JSON string
+      const parsed = JSON.parse(token);
+      return typeof parsed === 'string' ? parsed : token;
+    } catch (e) {
+      // Not JSON, return as is
+      return token.trim(); // Remove any whitespace
+    }
+  }
+  return null;
 };
 
 /**
@@ -36,12 +48,33 @@ const request = async (endpoint, options = {}) => {
     const response = await fetch(url, config);
     const data = await response.json();
 
+    // Handle 401 Unauthorized - token expired or invalid
+    if (response.status === 401) {
+      // Clear authentication data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      
+      // Dispatch custom event to notify AuthContext
+      window.dispatchEvent(new CustomEvent('auth:logout'));
+      
+      // Redirect to login if not already there
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
+      
+      throw new Error(data.message || 'Session expired. Please login again.');
+    }
+
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
 
     return data;
   } catch (error) {
+    // Handle network errors (connection refused, etc.)
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      throw new Error('Unable to connect to server. Please check if the backend is running.');
+    }
     throw error instanceof Error ? error : new Error('Network error occurred');
   }
 };

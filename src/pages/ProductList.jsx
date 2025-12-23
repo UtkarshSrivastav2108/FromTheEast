@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -18,10 +18,10 @@ import Navbar from '../components/Navbar';
 import Announcement from '../components/Announcement';
 import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
-import { menuCategories } from '../data';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useProducts } from '../hooks/useProducts';
+import { useCategories } from '../hooks/useCategories';
 import { Favorite, FavoriteBorder, ShoppingCartOutlined } from '@mui/icons-material';
 import { IconButton, Button, Chip, CircularProgress, Alert } from '@mui/material';
 
@@ -41,9 +41,20 @@ const ProductList = () => {
   const { products: allProducts, loading, error } = useProducts(
     category ? { category } : {}
   );
+  const { categories: menuCategories } = useCategories();
   
   const [sortBy, setSortBy] = useState('newest');
   const [filterVeg, setFilterVeg] = useState('all');
+
+  // Debug: Log products data
+  useEffect(() => {
+    console.log('ProductList - allProducts:', allProducts);
+    console.log('ProductList - allProducts type:', typeof allProducts);
+    console.log('ProductList - is array:', Array.isArray(allProducts));
+    console.log('ProductList - length:', allProducts?.length);
+    console.log('ProductList - loading:', loading);
+    console.log('ProductList - error:', error);
+  }, [allProducts, loading, error]);
 
   // Get category info
   const categoryInfo = useMemo(() => {

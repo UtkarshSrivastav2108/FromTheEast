@@ -28,9 +28,12 @@ export const useProducts = (options = {}) => {
         data = await productService.getProducts(options);
       }
       
-      setProducts(data);
+      // Ensure data is an array
+      const productsArray = Array.isArray(data) ? data : (data ? [data] : []);
+      setProducts(productsArray);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch products'));
+      setProducts([]);
     } finally {
       setLoading(false);
     }

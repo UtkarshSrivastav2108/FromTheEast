@@ -13,13 +13,14 @@ import {
   alpha,
   Menu,
   MenuItem,
+  Avatar,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   ShoppingCartOutlined,
-  PersonOutline,
   Menu as MenuIcon,
   Logout,
+  Person,
 } from '@mui/icons-material';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -33,6 +34,7 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [scrolled, setScrolled] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [avatarMenuAnchor, setAvatarMenuAnchor] = useState(null);
   const navigate = useNavigate();
   const { cart } = useCart();
   const { isAuthenticated, user, logout } = useAuth();
@@ -62,11 +64,23 @@ const Navbar = () => {
     : null;
 
   /**
+   * Get user initials for avatar
+   */
+  const userInitials = user
+    ? (user.firstName && user.lastName
+        ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+        : user.name
+        ? user.name.charAt(0).toUpperCase()
+        : 'U')
+    : 'U';
+
+  /**
    * Handle logout
    */
   const handleLogout = () => {
     logout();
     handleMenuClose();
+    handleAvatarMenuClose();
     navigate('/');
   };
 
@@ -76,6 +90,19 @@ const Navbar = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleAvatarMenuOpen = (event) => {
+    setAvatarMenuAnchor(event.currentTarget);
+  };
+
+  const handleAvatarMenuClose = () => {
+    setAvatarMenuAnchor(null);
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    handleAvatarMenuClose();
   };
 
   return (
@@ -438,38 +465,52 @@ const Navbar = () => {
               </Link>
               {isAuthenticated && (
                 <>
-              <Link
-                to="/profile"
-                style={{
-                  textDecoration: 'none',
-                  color: 'inherit',
-                }}
-              >
-                <IconButton
-                  sx={{
-                    color: 'text.secondary',
-                    '&:hover': {
-                      color: 'primary.main',
-                      backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    },
-                  }}
-                >
-                  <PersonOutline />
-                </IconButton>
-              </Link>
                   <IconButton
-                    onClick={handleLogout}
+                    onClick={handleAvatarMenuOpen}
                     sx={{
-                      color: 'text.secondary',
+                      padding: 0.5,
                       '&:hover': {
-                        color: 'primary.main',
                         backgroundColor: alpha(theme.palette.primary.main, 0.08),
                       },
                     }}
-                    title="Logout"
                   >
-                    <Logout />
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        bgcolor: 'primary.main',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {userInitials}
+                    </Avatar>
                   </IconButton>
+                  <Menu
+                    anchorEl={avatarMenuAnchor}
+                    open={Boolean(avatarMenuAnchor)}
+                    onClose={handleAvatarMenuClose}
+                    PaperProps={{
+                      sx: {
+                        mt: 1.5,
+                        minWidth: 180,
+                        borderRadius: 2,
+                        boxShadow: '0px 8px 24px rgba(0,0,0,0.12)',
+                      },
+                    }}
+                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  >
+                    <MenuItem onClick={handleProfileClick}>
+                      <Person sx={{ mr: 1.5, fontSize: 20 }} />
+                      Go to Profile
+                    </MenuItem>
+                    <MenuItem onClick={handleLogout}>
+                      <Logout sx={{ mr: 1.5, fontSize: 20 }} />
+                      Logout
+                    </MenuItem>
+                  </Menu>
                 </>
               )}
             </>

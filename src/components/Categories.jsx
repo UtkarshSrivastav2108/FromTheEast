@@ -1,9 +1,31 @@
 import React from 'react';
-import { Box, Typography, Container } from '@mui/material';
-import { categories } from '../data';
+import { Box, Typography, Container, CircularProgress } from '@mui/material';
 import CategoryItem from './CategoryItem';
+import { useCategories } from '../hooks/useCategories';
 
 const Categories = () => {
+  const { categories, loading } = useCategories();
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Transform categories to match CategoryItem expected format
+  const categoryItems = categories.map((cat, index) => ({
+    id: index + 1,
+    img: '', // Categories don't have images in the API, can be added later
+    title: cat.name,
+    icon: cat.icon,
+  }));
+
+  if (categoryItems.length === 0) {
+    return null;
+  }
+
   return (
     <Box
       sx={{
@@ -59,7 +81,7 @@ const Categories = () => {
             gap: { xs: 2, md: 3 },
           }}
         >
-          {categories.map((item) => (
+          {categoryItems.map((item) => (
             <CategoryItem item={item} key={item.id} />
           ))}
         </Box>

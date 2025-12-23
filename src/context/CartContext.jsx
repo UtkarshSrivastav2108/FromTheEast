@@ -26,9 +26,19 @@ export const CartProvider = ({ children }) => {
         setCart(data);
       }
     } catch (err) {
-      console.error('Cart fetch error:', err);
+      // 401 errors are expected when user is not logged in - don't log as error
+      const isUnauthorized = err.message && err.message.includes('authorization');
+      // Connection errors are expected when backend is not running - don't log as error
+      const isConnectionError = err.message && (
+        err.message.includes('Failed to fetch') || 
+        err.message.includes('Unable to connect')
+      );
+      
+      if (!isUnauthorized && !isConnectionError) {
+        console.error('Cart fetch error:', err);
+      }
       setError(err instanceof Error ? err : new Error('Failed to fetch cart'));
-      // Set empty cart on error (user might not be logged in)
+      // Set empty cart on error (user might not be logged in or backend is down)
       setCart({ items: [] });
     } finally {
       setLoading(false);

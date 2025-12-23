@@ -1,9 +1,26 @@
 import React from 'react';
-import { Box, Container, Typography } from '@mui/material';
-import { popularProducts } from '../data';
+import { Box, Container, Typography, CircularProgress } from '@mui/material';
 import Product from './Product';
+import { useProducts } from '../hooks/useProducts';
 
 const Products = () => {
+  const { products, loading } = useProducts({ featured: true });
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Use featured products as popular products
+  const popularProducts = products || [];
+
+  if (popularProducts.length === 0) {
+    return null;
+  }
+
   return (
     <Box
       sx={{
@@ -65,7 +82,7 @@ const Products = () => {
           }}
         >
           {popularProducts.map((item) => (
-            <Product item={item} key={item.id} />
+            <Product item={item} key={item._id || item.id} />
           ))}
         </Box>
       </Container>

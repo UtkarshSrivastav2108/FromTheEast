@@ -16,6 +16,8 @@ import {
   CardContent,
   IconButton,
   InputAdornment,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import { 
   Edit, 
@@ -26,13 +28,15 @@ import {
   Phone, 
   LocationOn,
   CheckCircle,
+  Logout,
 } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import Announcement from '../components/Announcement';
 import Footer from '../components/Footer';
 import { useProfile } from '../hooks/useProfile';
 import { useSnackbar } from '../context/SnackbarContext';
-import { CircularProgress, Alert } from '@mui/material';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Profile Page Component
@@ -43,6 +47,8 @@ const Profile = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { profile, loading, error, updateProfile } = useProfile();
   const { showSuccess, showError } = useSnackbar();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -135,6 +141,15 @@ const Profile = () => {
     }
     setIsEditing(false);
     setSaveError('');
+  };
+
+  /**
+   * Handle logout
+   */
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    showSuccess('Logged out successfully');
   };
 
   if (loading) {
@@ -641,6 +656,26 @@ const Profile = () => {
                     </Typography>
                   </Box>
                 </Box>
+                <Divider sx={{ my: 2.5 }} />
+                <Button
+                  variant="outlined"
+                  startIcon={<Logout />}
+                  onClick={handleLogout}
+                  fullWidth
+                  sx={{
+                    borderRadius: 1.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: 'error.main',
+                    color: 'error.main',
+                    '&:hover': {
+                      borderColor: 'error.dark',
+                      backgroundColor: alpha(theme.palette.error.main, 0.08),
+                    },
+                  }}
+                >
+                  Logout
+                </Button>
               </CardContent>
             </Card>
           </Grid>

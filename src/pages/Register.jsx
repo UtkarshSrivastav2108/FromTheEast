@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -12,6 +12,7 @@ import {
   Grid,
   IconButton,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +27,7 @@ const Register = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
-  const { login: loginContext } = useAuth();
+  const { isAuthenticated, loading: authLoading, login: loginContext } = useAuth();
   const { register, loading } = useAuthHook();
   const { showSuccess, showError } = useSnackbar();
   
@@ -39,6 +40,34 @@ const Register = () => {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Don't render register form if already authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   /**
    * Handle form field changes
@@ -109,7 +138,7 @@ const Register = () => {
         width: '100vw',
         height: '100vh',
         position: 'relative',
-        backgroundImage: 'url("https://images.unsplash.com/photo-1600953983491-ddd1ddf2b9e4?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1669&q=80")',
+        backgroundImage: 'url("https://images.unsplash.com/photo-1551218808-94e220e084d2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',

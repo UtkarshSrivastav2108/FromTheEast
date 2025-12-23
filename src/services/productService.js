@@ -13,8 +13,24 @@ import api from './api';
  * @returns {Promise<Array>} Array of products
  */
 export const getProducts = async (params = {}) => {
-  const response = await api.get('/products', params);
-  return response.data?.data || response.data || [];
+  try {
+    const response = await api.get('/products', params);
+    
+    // API returns { success: true, count: 21, data: [...] }
+    // response is already the parsed JSON object
+    if (response && response.data && Array.isArray(response.data)) {
+      return response.data;
+    }
+    
+    // Fallback: if response is already an array
+    if (Array.isArray(response)) {
+      return response;
+    }
+    
+    return [];
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -23,8 +39,13 @@ export const getProducts = async (params = {}) => {
  * @returns {Promise<Object>} Product data
  */
 export const getProduct = async (id) => {
-  const response = await api.get(`/products/${id}`);
-  return response.data?.data || response.data;
+  try {
+    const response = await api.get(`/products/${id}`);
+    // Response structure: { success: true, data: {...} }
+    return response.data || response;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -33,8 +54,19 @@ export const getProduct = async (id) => {
  * @returns {Promise<Array>} Array of products
  */
 export const getProductsByCategory = async (category) => {
-  const response = await api.get(`/products/category/${category}`);
-  return response.data?.data || response.data || [];
+  try {
+    const response = await api.get(`/products/category/${category}`);
+    // API returns { success, count, data } - extract the data array
+    if (response && response.data && Array.isArray(response.data)) {
+      return response.data;
+    }
+    if (Array.isArray(response)) {
+      return response;
+    }
+    return [];
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -42,8 +74,19 @@ export const getProductsByCategory = async (category) => {
  * @returns {Promise<Array>} Array of featured products
  */
 export const getFeaturedProducts = async () => {
-  const response = await api.get('/products/featured');
-  return response.data?.data || response.data || [];
+  try {
+    const response = await api.get('/products/featured');
+    // API returns { success, count, data } - extract the data array
+    if (response && response.data && Array.isArray(response.data)) {
+      return response.data;
+    }
+    if (Array.isArray(response)) {
+      return response;
+    }
+    return [];
+  } catch (error) {
+    throw error;
+  }
 };
 
 export default {
@@ -52,4 +95,3 @@ export default {
   getProductsByCategory,
   getFeaturedProducts,
 };
-

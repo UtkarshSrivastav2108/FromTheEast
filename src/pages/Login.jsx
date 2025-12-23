@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -11,6 +11,7 @@ import {
   useMediaQuery,
   IconButton,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +27,7 @@ const Login = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const location = useLocation();
-  const { login: loginContext } = useAuth();
+  const { isAuthenticated, loading: authLoading, login: loginContext } = useAuth();
   const { login: loginAPI, loading } = useAuthHook();
   const { showSuccess, showError } = useSnackbar();
   
@@ -35,6 +36,35 @@ const Login = () => {
     password: '',
   });
   const [error, setError] = useState('');
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate, location]);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Don't render login form if already authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   /**
    * Handle form field changes
@@ -92,7 +122,7 @@ const Login = () => {
         width: '100vw',
         height: '100vh',
         position: 'relative',
-        backgroundImage: 'url("https://images.unsplash.com/photo-1604830250692-54c16c369b06?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80")',
+        backgroundImage: 'url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import authService from '../services/authService';
 
 /**
@@ -17,6 +17,45 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const logoutRef = useRef(null);
+
+  /**
+   * Logout function
+   */
+  const logout = useCallback(() => {
+    try {
+      localStorage.removeItem('user');
+      localStorage.removeItem('authToken');
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      throw new Error('Failed to clear authentication data');
+    }
+  }, []);
+
+  // Store logout in ref for use in useEffect
+  logoutRef.current = logout;
+
+  /**
+   * Login function
+   * @param {Object} userData - User data to store
+   * @param {string} token - Authentication token
+   */
+  const login = useCallback((userData, token) => {
+    try {
+      // Ensure _id is set for MongoDB compatibility
+      const userWithId = {
+        ...userData,
+        _id: userData._id || userData.id,
+      };
+      localStorage.setItem('user', JSON.stringify(userWithId));
+      localStorage.setItem('authToken', token);
+      setUser(userWithId);
+      setIsAuthenticated(true);
+    } catch (error) {
+      throw new Error('Failed to save authentication data');
+    }
+  }, []);
 
   /**
    * Check authentication status on mount
@@ -31,10 +70,17 @@ export const AuthProvider = ({ children }) => {
           // Verify token is still valid by fetching current user
           try {
             const currentUser = await authService.getMe();
-            setUser(currentUser);
+            // Ensure _id is set for MongoDB compatibility
+            const userWithId = {
+              ...currentUser,
+              _id: currentUser._id || currentUser.id,
+            };
+            setUser(userWithId);
             setIsAuthenticated(true);
+            // Update localStorage with fresh user data
+            localStorage.setItem('user', JSON.stringify(userWithId));
           } catch (error) {
-            // Token invalid, clear storage
+            // Token invalid or expired, clear storage
             localStorage.removeItem('user');
             localStorage.removeItem('authToken');
             setIsAuthenticated(false);
@@ -53,36 +99,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAuth();
-  }, []);
 
-  /**
-   * Login function
-   * @param {Object} userData - User data to store
-   * @param {string} token - Authentication token
-   */
-  const login = useCallback((userData, token) => {
-    try {
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('authToken', token);
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (error) {
-      throw new Error('Failed to save authentication data');
-    }
-  }, []);
+    // Listen for logout events (e.g., from API 401 errors)
+    const handleLogout = () => {
+      if (logoutRef.current) {
+        logoutRef.current();
+      }
+    };
 
-  /**
-   * Logout function
-   */
-  const logout = useCallback(() => {
-    try {
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-      setUser(null);
-      setIsAuthenticated(false);
-    } catch (error) {
-      throw new Error('Failed to clear authentication data');
-    }
+    window.addEventListener('auth:logout', handleLogout);
+
+    return () => {
+      window.removeEventListener('auth:logout', handleLogout);
+    };
   }, []);
 
   const value = {

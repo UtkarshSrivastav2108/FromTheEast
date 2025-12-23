@@ -17,7 +17,11 @@ import api from './api';
  */
 export const register = async (userData) => {
   const response = await api.post('/auth/register', userData);
-  return response.data;
+  // Extract token and user from response.data.data
+  return {
+    user: response.data?.data?.user || response.data?.user,
+    token: response.data?.data?.token || response.data?.token,
+  };
 };
 
 /**
@@ -29,7 +33,11 @@ export const register = async (userData) => {
  */
 export const login = async (credentials) => {
   const response = await api.post('/auth/login', credentials);
-  return response.data;
+  // Extract token and user from response.data.data
+  return {
+    user: response.data?.data?.user || response.data?.user,
+    token: response.data?.data?.token || response.data?.token,
+  };
 };
 
 /**
@@ -38,7 +46,8 @@ export const login = async (credentials) => {
  */
 export const getMe = async () => {
   const response = await api.get('/auth/me');
-  return response.data.user;
+  // Extract user from response.data.data or response.data
+  return response.data?.data?.user || response.data?.user || response.data;
 };
 
 export default {

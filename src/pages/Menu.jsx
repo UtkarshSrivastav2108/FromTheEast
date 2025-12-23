@@ -39,10 +39,10 @@ import {
 } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { menuCategories } from '../data';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useProducts } from '../hooks/useProducts';
+import { useCategories } from '../hooks/useCategories';
 import { CircularProgress, Alert } from '@mui/material';
 
 /**
@@ -56,10 +56,11 @@ const Menu = () => {
   const { cart, addToCart, updateItem, removeItem } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { products: allProducts, loading: productsLoading, error: productsError } = useProducts();
+  const { categories: menuCategories, loading: categoriesLoading } = useCategories();
   
   // Extract cart items from hook
   const cartItems = cart?.items || [];
-  const [activeCategory, setActiveCategory] = useState('starters');
+  const [activeCategory, setActiveCategory] = useState(menuCategories[0]?.id || 'starters');
   const categoryRefs = useRef({});
 
   // Filter states
@@ -81,7 +82,7 @@ const Menu = () => {
       // Map MongoDB _id to id for compatibility
       id: item.id || item._id,
     }));
-  }, [allProducts]);
+  }, [allProducts, menuCategories]);
 
   // Calculate min and max prices
   const priceRangeValues = useMemo(() => {
@@ -298,6 +299,9 @@ const Menu = () => {
       </Box>
     );
   }
+
+  // Don't wait for categories - render items even if categories are still loading
+  // The fallback rendering will handle empty categories
 
   return (
     <Box
@@ -919,7 +923,16 @@ const Menu = () => {
                 )}
               </Box>
             ) : (
-              menuCategories.map((category) => {
+              // Use menuCategories if available, otherwise group by product categories
+              (menuCategories.length > 0 ? menuCategories : 
+                // Fallback: create category list from products
+                Array.from(new Set(filteredMenuItems.map(item => item.categoryId || item.category)))
+                  .map(catId => ({
+                    id: catId,
+                    name: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' '),
+                    icon: '🍽️'
+                  }))
+              ).map((category) => {
                 const items = filteredItemsByCategory[category.id] || [];
                 if (items.length === 0) return null;
 

@@ -153,6 +153,101 @@ const Home = () => {
           }}
         />
 
+        {/* Japanese Raymond Cart Images - Aesthetic Decorative Elements */}
+        {/* Left Side Cart */}
+        <Box
+          component="img"
+          src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80"
+          alt="Japanese food cart"
+          sx={{
+            position: 'absolute',
+            left: { xs: '-15%', md: '5%' },
+            bottom: { xs: '10%', md: '15%' },
+            width: { xs: '200px', sm: '280px', md: '350px', lg: '400px' },
+            height: 'auto',
+            opacity: 0.4,
+            zIndex: 1,
+            filter: 'blur(0.5px)',
+            transform: 'rotate(-5deg)',
+            transition: 'all 0.5s ease',
+            objectFit: 'contain',
+            '@keyframes floatCart': {
+              '0%, 100%': { transform: 'rotate(-5deg) translateY(0px)' },
+              '50%': { transform: 'rotate(-3deg) translateY(-15px)' },
+            },
+            animation: 'floatCart 8s ease-in-out infinite',
+          }}
+        />
+
+        {/* Right Side Cart */}
+        <Box
+          component="img"
+          src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80"
+          alt="Japanese street food cart"
+          sx={{
+            position: 'absolute',
+            right: { xs: '-15%', md: '5%' },
+            bottom: { xs: '15%', md: '20%' },
+            width: { xs: '180px', sm: '250px', md: '320px', lg: '380px' },
+            height: 'auto',
+            opacity: 0.35,
+            zIndex: 1,
+            filter: 'blur(0.5px)',
+            transform: 'rotate(5deg)',
+            transition: 'all 0.5s ease',
+            objectFit: 'contain',
+            '@keyframes floatCartRight': {
+              '0%, 100%': { transform: 'rotate(5deg) translateY(0px)' },
+              '50%': { transform: 'rotate(7deg) translateY(-20px)' },
+            },
+            animation: 'floatCartRight 10s ease-in-out infinite',
+          }}
+        />
+
+        {/* Center Background Cart (Subtle) */}
+        <Box
+          component="img"
+          src="https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=800&q=80"
+          alt="Japanese ramen cart"
+          sx={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: { xs: '250px', sm: '350px', md: '450px' },
+            height: 'auto',
+            opacity: 0.15,
+            zIndex: 1,
+            filter: 'blur(2px)',
+            objectFit: 'contain',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Additional Decorative Cart - Top Left */}
+        <Box
+          component="img"
+          src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80"
+          alt="Japanese food vendor cart"
+          sx={{
+            position: 'absolute',
+            left: { xs: '-10%', md: '2%' },
+            top: { xs: '15%', md: '20%' },
+            width: { xs: '150px', sm: '200px', md: '250px' },
+            height: 'auto',
+            opacity: 0.25,
+            zIndex: 1,
+            filter: 'blur(1px)',
+            transform: 'rotate(-8deg)',
+            objectFit: 'contain',
+            '@keyframes floatCartTop': {
+              '0%, 100%': { transform: 'rotate(-8deg) translateX(0px)' },
+              '50%': { transform: 'rotate(-6deg) translateX(10px)' },
+            },
+            animation: 'floatCartTop 12s ease-in-out infinite',
+          }}
+        />
+
         {/* Dynamic Overlay with Gradient */}
         <Box
           sx={{
@@ -161,7 +256,7 @@ const Home = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.75) 100%)',
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.45) 100%)',
             zIndex: 2,
           }}
         />

@@ -17,27 +17,39 @@ import {
   FormControlLabel,
   Divider,
   IconButton,
+  CircularProgress,
+  Alert,
+  Chip,
+  InputAdornment,
+  alpha,
+  useTheme,
 } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, LocalOffer, DeleteOutline } from '@mui/icons-material';
 import Announcement from '../components/Announcement';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useCart } from '../context/CartContext';
 import { useOrders } from '../hooks/useOrders';
+import { useCoupons, useCouponValidation } from '../hooks/useCoupons';
 import { useSnackbar } from '../context/SnackbarContext';
-import { CircularProgress, Alert } from '@mui/material';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
   const { cart, loading: cartLoading, clearCart } = useCart();
   const { createOrder, loading: orderLoading } = useOrders();
   const { showSuccess, showError } = useSnackbar();
+  const { coupons, loading: couponsLoading, error: couponsError } = useCoupons();
+  const { validateCoupon, loading: validatingCoupon } = useCouponValidation();
   
-  // Get coupon discount from navigation state
-  const appliedCoupon = location.state?.appliedCoupon || null;
-  const appliedCouponData = location.state?.appliedCouponData || null;
-  const couponDiscount = location.state?.discount || 0;
+  // Get coupon discount from navigation state or use local state
+  const [appliedCoupon, setAppliedCoupon] = useState(location.state?.appliedCoupon || null);
+  const [appliedCouponData, setAppliedCouponData] = useState(location.state?.appliedCouponData || null);
+  const [couponDiscount, setCouponDiscount] = useState(location.state?.discount || 0);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -63,11 +75,91 @@ const Checkout = () => {
   const deliveryFee = subtotal > 50 ? 0 : 4.99;
   const finalTotal = subtotal + deliveryFee - couponDiscount;
 
+  // Re-validate coupon when subtotal changes
+  useEffect(() => {
+    if (appliedCouponData && subtotal > 0) {
+      validateCoupon(appliedCouponData.code, subtotal)
+        .then((result) => {
+          setCouponDiscount(result.discount);
+          if (result.discount === 0 && subtotal < appliedCouponData.minAmount) {
+            setCouponError(`Minimum order of ₹${appliedCouponData.minAmount} required for this coupon`);
+          } else {
+            setCouponError('');
+          }
+        })
+        .catch(() => {
+          // Error already set by validation
+        });
+    }
+  }, [subtotal, appliedCouponData, validateCoupon]);
+
   useEffect(() => {
     if (!cartLoading && cartItems.length === 0) {
       navigate('/cart');
     }
   }, [cartItems, cartLoading, navigate]);
+
+  /**
+   * Apply coupon code
+   */
+  const handleApplyCoupon = async () => {
+    setCouponError('');
+    setCouponSuccess('');
+    
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    try {
+      const result = await validateCoupon(couponCode.trim(), subtotal);
+      setAppliedCoupon(result.coupon.code);
+      setAppliedCouponData(result.coupon);
+      setCouponDiscount(result.discount);
+      setCouponSuccess(`Coupon "${result.coupon.code}" applied successfully!`);
+      setCouponCode('');
+    } catch (err) {
+      setCouponError(err.message || 'Failed to apply coupon');
+      setAppliedCoupon(null);
+      setAppliedCouponData(null);
+      setCouponDiscount(0);
+    }
+  };
+
+  /**
+   * Remove applied coupon
+   */
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setAppliedCouponData(null);
+    setCouponDiscount(0);
+    setCouponCode('');
+    setCouponError('');
+    setCouponSuccess('');
+  };
+
+  /**
+   * Apply coupon from available coupons list
+   */
+  const handleApplyCouponFromList = async (coupon) => {
+    setCouponError('');
+    setCouponSuccess('');
+    setCouponCode(coupon.code);
+    
+    try {
+      const result = await validateCoupon(coupon.code, subtotal);
+      setAppliedCoupon(result.coupon.code);
+      setAppliedCouponData(result.coupon);
+      setCouponDiscount(result.discount);
+      setCouponSuccess(`Coupon "${result.coupon.code}" applied successfully!`);
+      setCouponCode('');
+    } catch (err) {
+      setCouponError(err.message || 'Failed to apply coupon');
+      setAppliedCoupon(null);
+      setAppliedCouponData(null);
+      setCouponDiscount(0);
+    }
+  };
 
   const handleChange = (field) => (event) => {
     setFormData({
@@ -407,10 +499,265 @@ const Checkout = () => {
                 Order Summary
               </Typography>
 
-              <Box sx={{ marginBottom: 2 }}>
-                {cartItems.map((item) => (
+              {/* Coupon Section */}
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    mb: 1,
+                    color: 'text.primary',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                  }}
+                >
+                  <LocalOffer sx={{ fontSize: 16 }} />
+                  Available Coupons
+                </Typography>
+
+                {/* Available Coupons List */}
+                {couponsLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+                    <CircularProgress size={20} />
+                  </Box>
+                ) : couponsError ? (
+                  <Alert severity="error" sx={{ fontSize: '0.75rem', mb: 1 }}>
+                    Failed to load coupons
+                  </Alert>
+                ) : coupons.length > 0 ? (
+                  <Box sx={{ mb: 1.5, maxHeight: '150px', overflowY: 'auto' }}>
+                    {coupons.map((coupon) => {
+                      const isEligible = subtotal >= coupon.minAmount;
+                      const isApplied = appliedCoupon === coupon.code;
+                      
+                      return (
+                        <Box
+                          key={coupon._id || coupon.code}
+                          sx={{
+                            p: 1,
+                            mb: 0.5,
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: isApplied ? 'success.main' : isEligible ? 'primary.main' : 'divider',
+                            backgroundColor: isApplied
+                              ? alpha(theme.palette.success.main, 0.1)
+                              : isEligible
+                              ? alpha(theme.palette.primary.main, 0.08)
+                              : alpha(theme.palette.grey[500], 0.05),
+                            cursor: isEligible && !isApplied ? 'pointer' : 'not-allowed',
+                            opacity: isEligible ? 1 : 0.6,
+                            transition: 'all 0.2s ease',
+                            '&:hover': isEligible && !isApplied
+                              ? {
+                                  backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                                  borderColor: 'primary.dark',
+                                }
+                              : {},
+                          }}
+                          onClick={() => {
+                            if (isEligible && !isApplied) {
+                              handleApplyCouponFromList(coupon);
+                            }
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Box sx={{ flex: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: isApplied ? 'success.main' : isEligible ? 'primary.main' : 'text.secondary',
+                                    fontSize: '0.85rem',
+                                  }}
+                                >
+                                  {coupon.code}
+                                </Typography>
+                                {isApplied && (
+                                  <Chip
+                                    label="Applied"
+                                    size="small"
+                                    sx={{
+                                      backgroundColor: 'success.main',
+                                      color: 'white',
+                                      fontSize: '0.65rem',
+                                      height: '18px',
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                              {coupon.description && (
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    color: 'text.secondary',
+                                    display: 'block',
+                                    mb: 0.5,
+                                    fontSize: '0.7rem',
+                                  }}
+                                >
+                                  {coupon.description}
+                                </Typography>
+                              )}
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                <Chip
+                                  label={
+                                    coupon.discountType === 'percentage'
+                                      ? `${coupon.discountValue}% OFF`
+                                      : `₹${coupon.discountValue} OFF`
+                                  }
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: isEligible ? 'primary.main' : 'grey.400',
+                                    color: 'white',
+                                    fontSize: '0.65rem',
+                                    fontWeight: 600,
+                                    height: '20px',
+                                  }}
+                                />
+                                {coupon.minAmount > 0 && (
+                                  <Typography 
+                                    variant="caption" 
+                                    sx={{ 
+                                      color: 'text.secondary',
+                                      fontSize: '0.7rem',
+                                    }}
+                                  >
+                                    Min ₹{coupon.minAmount}
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Box>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                ) : (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic', fontSize: '0.75rem' }}>
+                    No coupons available
+                  </Typography>
+                )}
+
+                {/* Manual Coupon Input */}
+                {!appliedCoupon && (
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Or enter coupon code"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value);
+                        setCouponError('');
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !validatingCoupon) {
+                          handleApplyCoupon();
+                        }
+                      }}
+                      disabled={validatingCoupon}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LocalOffer sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                        },
+                      }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={handleApplyCoupon}
+                      disabled={validatingCoupon}
+                      sx={{
+                        minWidth: '70px',
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        borderColor: 'primary.main',
+                        color: 'primary.main',
+                        '&:hover': {
+                          borderColor: 'primary.dark',
+                          backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                        },
+                      }}
+                    >
+                      {validatingCoupon ? <CircularProgress size={14} /> : 'Apply'}
+                    </Button>
+                  </Box>
+                )}
+
+                {/* Applied Coupon Display */}
+                {appliedCoupon && (
                   <Box
-                    key={item.id}
+                    sx={{
+                      p: 1,
+                      mt: 1.5,
+                      borderRadius: 1,
+                      backgroundColor: alpha(theme.palette.success.main, 0.1),
+                      border: '1px solid',
+                      borderColor: 'success.main',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LocalOffer sx={{ fontSize: 16, color: 'success.main' }} />
+                      <Box>
+                        <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600, fontSize: '0.85rem' }}>
+                          {appliedCoupon} Applied
+                        </Typography>
+                        {appliedCouponData && (
+                          <Typography variant="caption" sx={{ color: 'success.main', fontSize: '0.7rem' }}>
+                            {appliedCouponData.discountType === 'percentage'
+                              ? `${appliedCouponData.discountValue}% off`
+                              : `₹${appliedCouponData.discountValue} off`}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                    <IconButton
+                      size="small"
+                      onClick={handleRemoveCoupon}
+                      sx={{
+                        color: 'error.main',
+                        padding: '4px',
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.error.main, 0.08),
+                        },
+                      }}
+                    >
+                      <DeleteOutline fontSize="small" />
+                    </IconButton>
+                  </Box>
+                )}
+
+                {/* Error/Success Messages */}
+                {couponError && (
+                  <Alert severity="error" sx={{ mt: 1, fontSize: '0.75rem' }}>
+                    {couponError}
+                  </Alert>
+                )}
+                {couponSuccess && (
+                  <Alert severity="success" sx={{ mt: 1, fontSize: '0.75rem' }}>
+                    {couponSuccess}
+                  </Alert>
+                )}
+              </Box>
+
+              <Divider sx={{ mb: 2 }} />
+
+              <Box sx={{ marginBottom: 2 }}>
+                {cartItems.map((item, index) => (
+                  <Box
+                    key={item._id || item.id || item.product?._id || item.product || `cart-item-${index}`}
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -509,11 +856,11 @@ const Checkout = () => {
               </Box>
 
               <Button
-                type="submit"
                 variant="contained"
                 fullWidth
                 size="large"
                 disabled={orderLoading}
+                onClick={handleSubmit}
                 sx={{
                   padding: '16px',
                   fontSize: '16px',

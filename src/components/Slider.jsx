@@ -120,7 +120,7 @@ const Slider = () => {
               textShadow: '0 2px 20px rgba(0,0,0,0.3)',
             }}
           >
-            Authentic Asian Cuisine
+            {currentSlide.title || 'Authentic Asian Cuisine'}
           </Typography>
           <Typography
             variant="h5"
@@ -133,8 +133,7 @@ const Slider = () => {
               textShadow: '0 1px 10px rgba(0,0,0,0.2)',
             }}
           >
-            Experience the rich flavors of Central, East, South, and Southeast Asia. 
-            From Japanese ramen to fresh sushi, discover culinary traditions that span continents.
+            {currentSlide.description || 'Experience the rich flavors of Central, East, South, and Southeast Asia.'}
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <Button
@@ -247,7 +246,7 @@ const Slider = () => {
           zIndex: 3,
         }}
       >
-        {sliderItems.map((_, index) => (
+        {sliders.map((_, index) => (
           <Box
             key={index}
             onClick={() => setSlideIndex(index)}

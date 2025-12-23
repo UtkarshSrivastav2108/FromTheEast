@@ -52,23 +52,6 @@ const Cart = () => {
     };
   });
   
-  // Debug: Log cart and coupon data
-  useEffect(() => {
-    if (cart) {
-      console.log('Cart data:', cart);
-      console.log('Raw items:', rawItems);
-      console.log('Cart items:', cartItems);
-    }
-    if (error) {
-      console.error('Cart error:', error);
-    }
-    if (coupons.length > 0) {
-      console.log('Available coupons:', coupons);
-    }
-    if (couponsError) {
-      console.error('Coupons error:', couponsError);
-    }
-  }, [cart, cartItems, error, rawItems, coupons, couponsError]);
   
   const getTotal = () => {
     return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
